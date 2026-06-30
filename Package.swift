@@ -18,6 +18,11 @@ let package = Package(
             name: "qhelp",
             dependencies: ["QHelpCore"],
             path: "Sources/qhelp"
+        ),
+        .executableTarget(
+            name: "qhelpTests",
+            dependencies: ["QHelpCore"],
+            path: "Tests"
         )
     ]
 )

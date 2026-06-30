@@ -57,3 +57,18 @@ Optional: `QWEN_BASE_URL` to override the default international DashScope endpoi
 - Responses render as **rich markdown** (headings, lists, code blocks, links)
 - Drag-select works within each block; use Copy all for the entire response
 - Does **not** activate qhelp or steal focus from your current app
+
+## Supported Models
+
+Run `qhelp --help` for the full alias list. Examples:
+
+- `claude-sonnet-4-6`, `claude-haiku-4-5`
+- `gpt-4o`, `o3-mini`
+- `gemini-2.5-flash`, `gemini-2.5-pro`
+- `grok-3`, `grok-3-mini`
+- `kimi-k2`, `moonshot-v1-128k`
+- `deepseek-chat`, `deepseek-reasoner`
+- `qwen-plus`, `qwen-vl-plus`
+- `glm-4-plus`, `glm-4-flash`
+
+Unknown aliases within a provider family are passed through to the API.

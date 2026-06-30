@@ -9,7 +9,7 @@ enum CLIParserTests: TestCase {
         guard case .config(let config) = result else {
             throw TestFailure.message("Expected config result")
         }
-        try assertEqual(config.modelAlias, "claude-sonnet-4-6")
+        try assertEqual(config.modelName, "claude-sonnet-4-6")
 
         try assertEqual(CLIParser.parseResult(["qhelp", "--help"]), CLIParseResult.help)
         try assertEqual(CLIParser.parseResult(["qhelp", "-h"]), CLIParseResult.help)
@@ -18,9 +18,8 @@ enum CLIParserTests: TestCase {
         try assertEqual(CLIParser.parseResult(["qhelp", "--unknown"]), CLIParseResult.invalidUsage)
 
         let usage = CLIParser.usageText()
-        try assertTrue(usage.contains("claude-sonnet-4-6"))
-        try assertTrue(usage.contains("gpt-4o"))
-        try assertTrue(usage.contains("gemini-2.5-flash"))
+        try assertTrue(usage.contains("exact model name"))
+        try assertTrue(usage.contains("claude-*"))
         try assertTrue(usage.contains("click the header"))
     }
 }

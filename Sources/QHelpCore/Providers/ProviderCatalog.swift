@@ -91,4 +91,19 @@ public enum ProviderCatalog {
         components?.queryItems = [URLQueryItem(name: "key", value: apiKey)]
         return components?.url
     }
+
+    public static func anthropicModelURL(modelIdentifier: String) -> URL? {
+        URL(string: "https://api.anthropic.com/v1/models/\(modelIdentifier)")
+    }
+
+    public static func geminiModelURL(modelIdentifier: String, apiKey: String) -> URL? {
+        var components = URLComponents(string: "https://generativelanguage.googleapis.com/v1beta/models/\(modelIdentifier)")
+        components?.queryItems = [URLQueryItem(name: "key", value: apiKey)]
+        return components?.url
+    }
+
+    public static func openAIModelURL(kind: ProviderKind, modelIdentifier: String) -> URL? {
+        guard let base = openAICompatibleBaseURL(for: kind) else { return nil }
+        return base.appendingPathComponent("models").appendingPathComponent(modelIdentifier)
+    }
 }

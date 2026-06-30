@@ -5,12 +5,10 @@ public enum QHelpApplication {
     public static func run(with arguments: [String]) {
         let config = CLIParser.parse(arguments)
 
-        guard let provider = ProviderRegistry.resolve(modelAlias: config.modelAlias) else {
-            print("Error: Unknown model '\(config.modelAlias)'")
-            print("\nAvailable models:")
-            for model in ProviderRegistry.availableModels {
-                print("  \(model)")
-            }
+        guard let provider = ProviderRegistry.resolve(modelName: config.modelName) else {
+            print("Error: Cannot route model '\(config.modelName)' to a provider.")
+            print("\nUse an exact API model name with a recognized prefix:\n")
+            print(ProviderCatalog.routingHelp)
             exit(1)
         }
 

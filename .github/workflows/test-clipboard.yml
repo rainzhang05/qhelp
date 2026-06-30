@@ -1,0 +1,17 @@
+name: Test Clipboard
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-clipboard:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build -c release
+      - name: Run ClipboardContentTests
+        run: swift run -c release qhelpTests ClipboardContentTests

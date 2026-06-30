@@ -14,14 +14,15 @@ enum ProviderCatalogTests: TestCase {
         try assertEqual(ProviderCatalog.kind(for: "deepseek-chat"), .deepseek)
         try assertEqual(ProviderCatalog.kind(for: "qwen-plus"), .qwen)
         try assertEqual(ProviderCatalog.kind(for: "glm-4-flash"), .glm)
+        try assertEqual(ProviderCatalog.kind(for: "unknown-model"), nil)
 
         try assertEqual(
-            ProviderCatalog.modelIdentifier(for: "gpt-4o", kind: .openai),
+            ProviderCatalog.modelIdentifier(for: "gpt-4o"),
             "gpt-4o"
         )
         try assertEqual(
-            ProviderCatalog.modelIdentifier(for: "gemini-custom", kind: .gemini),
-            "gemini-custom"
+            ProviderCatalog.modelIdentifier(for: "any-custom-model-name"),
+            "any-custom-model-name"
         )
 
         try assertTrue(ProviderCatalog.supportsImages(modelIdentifier: "gpt-4o", kind: .openai))

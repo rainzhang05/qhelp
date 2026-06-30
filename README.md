@@ -16,7 +16,7 @@ A lightweight macOS command-line utility that monitors the system clipboard and 
 ## Installation
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/rainzhang05/qhelp
 cd qhelp
 chmod +x Scripts/*.sh
 ./Scripts/install.sh

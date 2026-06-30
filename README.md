@@ -80,7 +80,10 @@ Run `qhelp --help` for details.
 ```bash
 swift build -c release
 swift run -c release qhelpTests
+swift run -c release qhelpTests CLIParserTests   # single suite
 ```
+
+GitHub Actions CI runs build and per-category test workflows on push/PR to `main`.
 
 ## License
 

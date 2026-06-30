@@ -19,6 +19,13 @@ qhelp/
 │       ├── Providers/         # AI provider clients and routing
 │       └── Queue/             # Serial request processing
 ├── Tests/                     # Custom assert-based test runner (not XCTest)
+│   ├── Support/               # Assertions, TestCase protocol, suite registry
+│   ├── Runner/                # qhelpTests entry point
+│   ├── Clipboard/
+│   ├── CLI/
+│   ├── Provider/
+│   ├── Overlay/
+│   └── Queue/
 └── Scripts/                   # build.sh, install.sh, uninstall.sh
 ```
 
@@ -80,7 +87,14 @@ swift run -c release qhelpTests
 ./Scripts/install.sh   # installs to /usr/local/bin or ~/.local/bin
 ```
 
-Tests use a custom runner in `Tests/TestSupport.swift` (`@main enum TestRunner`). QHelpCore exposes internals to tests via `@testable import` and `-enable-testing` swift settings.
+Tests use a custom runner in `Tests/Runner/main.swift` and shared helpers in `Tests/Support/TestSupport.swift`. Run all suites or one at a time:
+
+```bash
+swift run -c release qhelpTests
+swift run -c release qhelpTests ProviderCatalogTests
+```
+
+CI runs separate GitHub Actions workflows per test category under `.github/workflows/`.
 
 ## Conventions for agents
 

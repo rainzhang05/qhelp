@@ -1,0 +1,35 @@
+name: Test Provider API
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-anthropic-api:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build -c release
+      - name: Run AnthropicAPITests
+        run: swift run -c release qhelpTests AnthropicAPITests
+
+  test-openai-api:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build -c release
+      - name: Run OpenAICompatibleAPITests
+        run: swift run -c release qhelpTests OpenAICompatibleAPITests
+
+  test-gemini-api:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build -c release
+      - name: Run GeminiAPITests
+        run: swift run -c release qhelpTests GeminiAPITests

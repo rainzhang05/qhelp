@@ -72,3 +72,14 @@ Run `qhelp --help` for the full alias list. Examples:
 - `glm-4-plus`, `glm-4-flash`
 
 Unknown aliases within a provider family are passed through to the API.
+
+## Development
+
+```bash
+swift build -c release
+swift run -c release qhelpTests
+```
+
+## License
+
+MIT — see [LICENSE](LICENSE).

@@ -1,96 +1,40 @@
 import Foundation
 
-/// Provider metadata: routing, model aliases, and endpoints.
+/// Provider metadata: routing rules and API endpoints.
 public enum ProviderCatalog {
-
-    // MARK: - Model Maps
-
-    private static let anthropicModels: [String: String] = [
-        "claude-sonnet-4-6": "claude-sonnet-4-6",
-        "claude-opus-4-1": "claude-opus-4-1",
-        "claude-sonnet-4": "claude-sonnet-4-5-20250929",
-        "claude-haiku-4-5": "claude-haiku-4-5-20251001",
-        "claude-haiku-3-5": "claude-3-5-haiku-20241022",
-    ]
-
-    private static let openaiModels: [String: String] = [
-        "gpt-4o": "gpt-4o",
-        "gpt-4.1": "gpt-4.1",
-        "gpt-4.1-mini": "gpt-4.1-mini",
-        "o3-mini": "o3-mini",
-        "o4-mini": "o4-mini",
-    ]
-
-    private static let geminiModels: [String: String] = [
-        "gemini-2.5-flash": "gemini-2.5-flash",
-        "gemini-2.5-pro": "gemini-2.5-pro",
-        "gemini-2.0-flash": "gemini-2.0-flash",
-    ]
-
-    private static let grokModels: [String: String] = [
-        "grok-3": "grok-3",
-        "grok-3-mini": "grok-3-mini",
-        "grok-2-vision-1212": "grok-2-vision-1212",
-    ]
-
-    private static let kimiModels: [String: String] = [
-        "kimi-k2": "kimi-k2-0711-preview",
-        "kimi-k2-turbo": "kimi-k2-turbo-preview",
-        "moonshot-v1-128k": "moonshot-v1-128k",
-        "moonshot-v1-32k": "moonshot-v1-32k",
-    ]
-
-    private static let deepseekModels: [String: String] = [
-        "deepseek-chat": "deepseek-chat",
-        "deepseek-reasoner": "deepseek-reasoner",
-    ]
-
-    private static let qwenModels: [String: String] = [
-        "qwen-plus": "qwen-plus",
-        "qwen-max": "qwen-max",
-        "qwen-turbo": "qwen-turbo",
-        "qwen-vl-plus": "qwen-vl-plus",
-    ]
-
-    private static let glmModels: [String: String] = [
-        "glm-4-plus": "glm-4-plus",
-        "glm-4-flash": "glm-4-flash",
-        "glm-4v-plus": "glm-4v-plus",
-    ]
 
     // MARK: - Public
 
-    public static var allModelAliases: [String] {
-        var models: [String] = []
-        models.append(contentsOf: anthropicModels.keys)
-        models.append(contentsOf: openaiModels.keys)
-        models.append(contentsOf: geminiModels.keys)
-        models.append(contentsOf: grokModels.keys)
-        models.append(contentsOf: kimiModels.keys)
-        models.append(contentsOf: deepseekModels.keys)
-        models.append(contentsOf: qwenModels.keys)
-        models.append(contentsOf: glmModels.keys)
-        return models.sorted()
-    }
+    /// Describes how model name prefixes map to providers (for help and errors).
+    public static let routingHelp = """
+      claude-*              Anthropic
+      gpt-*, o1*, o3*, o4*  OpenAI
+      gemini-*              Google Gemini
+      grok-*                xAI Grok
+      kimi-*, moonshot-*    Moonshot Kimi
+      deepseek-*            DeepSeek
+      qwen-*                Qwen / DashScope
+      glm-*                 Zhipu GLM
+    """
 
-    public static func kind(for modelAlias: String) -> ProviderKind? {
-        if modelAlias.hasPrefix("claude") { return .anthropic }
-        if modelAlias.hasPrefix("gpt")
-            || modelAlias.hasPrefix("o1")
-            || modelAlias.hasPrefix("o3")
-            || modelAlias.hasPrefix("o4") { return .openai }
-        if modelAlias.hasPrefix("gemini") { return .gemini }
-        if modelAlias.hasPrefix("grok") { return .grok }
-        if modelAlias.hasPrefix("kimi") || modelAlias.hasPrefix("moonshot") { return .kimi }
-        if modelAlias.hasPrefix("deepseek") { return .deepseek }
-        if modelAlias.hasPrefix("qwen") { return .qwen }
-        if modelAlias.hasPrefix("glm") { return .glm }
+    public static func kind(for modelName: String) -> ProviderKind? {
+        if modelName.hasPrefix("claude") { return .anthropic }
+        if modelName.hasPrefix("gpt")
+            || modelName.hasPrefix("o1")
+            || modelName.hasPrefix("o3")
+            || modelName.hasPrefix("o4") { return .openai }
+        if modelName.hasPrefix("gemini") { return .gemini }
+        if modelName.hasPrefix("grok") { return .grok }
+        if modelName.hasPrefix("kimi") || modelName.hasPrefix("moonshot") { return .kimi }
+        if modelName.hasPrefix("deepseek") { return .deepseek }
+        if modelName.hasPrefix("qwen") { return .qwen }
+        if modelName.hasPrefix("glm") { return .glm }
         return nil
     }
 
-    public static func modelIdentifier(for alias: String, kind: ProviderKind) -> String {
-        let map = modelMap(for: kind)
-        return map[alias] ?? alias
+    /// Returns the model name unchanged — sent verbatim to the provider API.
+    public static func modelIdentifier(for modelName: String) -> String {
+        modelName
     }
 
     public static func supportsImages(modelIdentifier: String, kind: ProviderKind) -> Bool {
@@ -146,20 +90,5 @@ public enum ProviderCatalog {
         var components = URLComponents(string: "https://generativelanguage.googleapis.com/v1beta/models/\(modelIdentifier):generateContent")
         components?.queryItems = [URLQueryItem(name: "key", value: apiKey)]
         return components?.url
-    }
-
-    // MARK: - Private
-
-    private static func modelMap(for kind: ProviderKind) -> [String: String] {
-        switch kind {
-        case .anthropic: return anthropicModels
-        case .openai: return openaiModels
-        case .gemini: return geminiModels
-        case .grok: return grokModels
-        case .kimi: return kimiModels
-        case .deepseek: return deepseekModels
-        case .qwen: return qwenModels
-        case .glm: return glmModels
-        }
     }
 }

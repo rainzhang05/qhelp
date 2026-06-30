@@ -6,10 +6,18 @@ let package = Package(
     platforms: [
         .macOS(.v13)
     ],
+    products: [
+        .executable(name: "qhelp", targets: ["qhelp"])
+    ],
     targets: [
         .target(
             name: "QHelpCore",
             path: "Sources/QHelpCore"
+        ),
+        .executableTarget(
+            name: "qhelp",
+            dependencies: ["QHelpCore"],
+            path: "Sources/qhelp"
         )
     ]
 )

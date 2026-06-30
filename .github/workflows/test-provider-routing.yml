@@ -8,7 +8,7 @@ on:
 
 jobs:
   test-provider-catalog:
-    runs-on: macos-14
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
       - name: Build
@@ -17,7 +17,7 @@ jobs:
         run: swift run -c release qhelpTests ProviderCatalogTests
 
   test-provider-registry:
-    runs-on: macos-14
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
       - name: Build

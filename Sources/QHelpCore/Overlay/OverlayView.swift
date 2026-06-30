@@ -96,11 +96,10 @@ private struct LiquidGlassCard: ViewModifier {
         if #available(macOS 26.0, *) {
             content.modifier(LiquidGlassCardOS26())
         } else {
-            content
-                .background(
-                    .regularMaterial,
-                    in: RoundedRectangle(cornerRadius: 20, style: .continuous)
-                )
+            content.background(
+                .regularMaterial,
+                in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+            )
         }
     }
 }

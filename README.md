@@ -58,20 +58,22 @@ Optional: `QWEN_BASE_URL` to override the default international DashScope endpoi
 - Drag-select works within each block; use Copy all for the entire response
 - Does **not** activate qhelp or steal focus from your current app
 
-## Supported Models
+## Model names
 
-Run `qhelp --help` for the full alias list. Examples:
+Pass the **exact model name** from your provider's API (e.g. `claude-sonnet-4-6`, `gpt-4o`, `gemini-2.5-flash`). qhelp routes by name prefix to the correct provider and sends the string verbatim — no curated alias list. If the model does not exist, the provider returns an API error.
 
-- `claude-sonnet-4-6`, `claude-haiku-4-5`
-- `gpt-4o`, `o3-mini`
-- `gemini-2.5-flash`, `gemini-2.5-pro`
-- `grok-3`, `grok-3-mini`
-- `kimi-k2`, `moonshot-v1-128k`
-- `deepseek-chat`, `deepseek-reasoner`
-- `qwen-plus`, `qwen-vl-plus`
-- `glm-4-plus`, `glm-4-flash`
+| Prefix | Provider |
+|--------|----------|
+| `claude-*` | Anthropic |
+| `gpt-*`, `o1*`, `o3*`, `o4*` | OpenAI |
+| `gemini-*` | Gemini |
+| `grok-*` | Grok |
+| `kimi-*`, `moonshot-*` | Kimi |
+| `deepseek-*` | DeepSeek |
+| `qwen-*` | Qwen |
+| `glm-*` | GLM |
 
-Unknown aliases within a provider family are passed through to the API.
+Run `qhelp --help` for details.
 
 ## Development
 

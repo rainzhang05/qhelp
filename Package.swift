@@ -26,7 +26,11 @@ let package = Package(
         .executableTarget(
             name: "qhelpTests",
             dependencies: ["QHelpCore"],
-            path: "Tests"
+            path: "Tests",
+            swiftSettings: [
+                .unsafeFlags(["-parse-as-library"], .when(configuration: .debug)),
+                .unsafeFlags(["-parse-as-library"], .when(configuration: .release))
+            ]
         )
     ]
 )

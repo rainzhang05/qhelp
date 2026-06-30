@@ -1,0 +1,26 @@
+name: Test Overlay
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-overlay-interaction:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build -c release
+      - name: Run OverlayInteractionTests
+        run: swift run -c release qhelpTests OverlayInteractionTests
+
+  test-markdown-rendering:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: swift build -c release
+      - name: Run MarkdownRenderingTests
+        run: swift run -c release qhelpTests MarkdownRenderingTests

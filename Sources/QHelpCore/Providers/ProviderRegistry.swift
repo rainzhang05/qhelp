@@ -5,7 +5,10 @@ public enum ProviderRegistry {
 
     // MARK: - Public Interface
 
-    public static func resolve(modelName: String) -> AIProvider? {
+    public static func resolve(
+        modelName: String,
+        options: ModelRequestOptions = .none
+    ) -> AIProvider? {
         guard let kind = ProviderCatalog.kind(for: modelName) else {
             return nil
         }
@@ -17,37 +20,40 @@ public enum ProviderRegistry {
             exit(1)
         }
 
-        let modelIdentifier = ProviderCatalog.modelIdentifier(for: modelName)
-        let supportsImages = ProviderCatalog.supportsImages(
-            modelIdentifier: modelIdentifier,
-            kind: kind
+        return makeProvider(
+            modelName: modelName,
+            kind: kind,
+            apiKey: apiKey,
+            options: options
         )
+    }
 
-        switch kind {
-        case .anthropic:
-            return AnthropicProvider(
-                modelIdentifier: modelIdentifier,
-                displayName: modelName,
-                apiKey: apiKey
-            )
-
-        case .openai, .grok, .kimi, .deepseek, .qwen, .glm:
-            return OpenAICompatibleProvider(
-                kind: kind,
-                modelIdentifier: modelIdentifier,
-                displayName: modelName,
-                apiKey: apiKey,
-                supportsImages: supportsImages
-            )
-
-        case .gemini:
-            return GeminiProvider(
-                modelIdentifier: modelIdentifier,
-                displayName: modelName,
-                apiKey: apiKey,
-                supportsImages: supportsImages
-            )
+    public static func fetchCapabilities(
+        modelName: String,
+        apiKey: String
+    ) async -> ModelParameterProfile {
+        guard let kind = ProviderCatalog.kind(for: modelName) else {
+            return .empty
         }
+
+        let modelIdentifier = ProviderCatalog.modelIdentifier(for: modelName)
+        return await ModelCapabilityFetcher.fetch(
+            kind: kind,
+            modelIdentifier: modelIdentifier,
+            apiKey: apiKey
+        )
+    }
+
+    public static func resolveAPIKey(for modelName: String, promptIfMissing: Bool = true) -> String? {
+        guard let kind = ProviderCatalog.kind(for: modelName) else {
+            return nil
+        }
+
+        return APIKeyStore.resolveKey(for: kind, promptIfMissing: promptIfMissing)
+    }
+
+    public static func providerKind(for modelName: String) -> ProviderKind? {
+        ProviderCatalog.kind(for: modelName)
     }
 
     // MARK: - Testing Helpers
@@ -64,7 +70,47 @@ public enum ProviderRegistry {
         APIKeyStore.resolveKey(for: .anthropic, promptIfMissing: promptIfMissing)
     }
 
-    public static func providerKind(for modelName: String) -> ProviderKind? {
-        ProviderCatalog.kind(for: modelName)
+    // MARK: - Private
+
+    private static func makeProvider(
+        modelName: String,
+        kind: ProviderKind,
+        apiKey: String,
+        options: ModelRequestOptions
+    ) -> AIProvider {
+        let modelIdentifier = ProviderCatalog.modelIdentifier(for: modelName)
+        let supportsImages = ProviderCatalog.supportsImages(
+            modelIdentifier: modelIdentifier,
+            kind: kind
+        )
+
+        switch kind {
+        case .anthropic:
+            return AnthropicProvider(
+                modelIdentifier: modelIdentifier,
+                displayName: modelName,
+                apiKey: apiKey,
+                requestOptions: options
+            )
+
+        case .openai, .grok, .kimi, .deepseek, .qwen, .glm:
+            return OpenAICompatibleProvider(
+                kind: kind,
+                modelIdentifier: modelIdentifier,
+                displayName: modelName,
+                apiKey: apiKey,
+                supportsImages: supportsImages,
+                requestOptions: options
+            )
+
+        case .gemini:
+            return GeminiProvider(
+                modelIdentifier: modelIdentifier,
+                displayName: modelName,
+                apiKey: apiKey,
+                supportsImages: supportsImages,
+                requestOptions: options
+            )
+        }
     }
 }

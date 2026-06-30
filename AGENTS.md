@@ -14,9 +14,9 @@ qhelp/
 │       ├── CLI/               # Argument parsing and --help
 │       ├── Clipboard/         # Pasteboard monitoring and content types
 │       ├── Config/            # Keychain API key storage and terminal prompts
-│       ├── Models/            # Shared error types
+│       ├── Models/            # Shared types (errors, model options)
 │       ├── Overlay/           # SwiftUI overlay UI (glass panel, markdown)
-│       ├── Providers/         # AI provider clients and routing
+│       ├── Providers/         # AI provider clients, routing, capability fetch
 │       └── Queue/             # Serial request processing
 ├── Tests/                     # Custom assert-based test runner (not XCTest)
 │   ├── Support/               # Assertions, TestCase protocol, suite registry
@@ -33,7 +33,10 @@ qhelp/
 
 ```
 CLI (exact model name)
-    → ProviderRegistry.resolve(modelName:)
+    → resolve API key
+    → ModelCapabilityFetcher (provider Models API)
+    → ModelOptionsPrompt (thinking / effort when supported)
+    → ProviderRegistry.resolve(modelName:, options:)
         → ProviderCatalog.kind(for:) — prefix routing only
         → model name sent verbatim to API
 ClipboardMonitor (NSPasteboard polling)
@@ -49,6 +52,7 @@ ClipboardMonitor (NSPasteboard polling)
 - **Overlay** — Bottom-right floating panel; click header to dismiss; scrollable content; Copy all writes raw response to pasteboard.
 - **Markdown** — Success responses render via native block parser (`MarkdownDocumentParser` + `ResponseMarkdownView`); errors use plain text.
 - **API keys** — One Keychain entry per provider (`qhelp.<kind>`); env vars override Keychain.
+- **Model options** — `ModelCapabilityFetcher` reads provider Models API metadata; `ModelOptionsPrompt` asks for thinking/effort when supported; auto-applies temperature/top_p/verbosity defaults when metadata indicates support. OpenAI-compatible vendors without extended metadata get no prompts (metadata-only, no probe requests).
 
 ## Provider routing
 
@@ -71,8 +75,10 @@ Base URLs and env vars live in `ProviderCatalog.swift`. Unknown models at the AP
 
 | File | Role |
 |------|------|
-| `QHelpApplication.swift` | Wires CLI, monitor, queue, overlay; handles SIGINT/SIGTERM |
-| `ProviderRegistry.swift` | Resolves model alias → provider instance |
+| `QHelpApplication.swift` | Wires CLI, capability fetch, options prompt, monitor, queue, overlay |
+| `ProviderRegistry.swift` | Resolves model → provider instance; fetches capabilities |
+| `ModelCapabilityFetcher.swift` | Provider Models API client and JSON parsing |
+| `ModelOptionsPrompt.swift` | Terminal prompts for thinking and reasoning effort |
 | `ProviderCatalog.swift` | Prefix routing, API URLs, image capability heuristics |
 | `RequestQueue.swift` | Serial async processing; calls overlay on MainActor |
 | `OverlayManager.swift` | NSPanel lifecycle, transparent NSHostingView |

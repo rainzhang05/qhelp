@@ -10,6 +10,7 @@ A lightweight macOS command-line utility that monitors the system clipboard and 
 - **Interactive Overlay** — Scroll and copy text; click header to dismiss; never steals focus
 - **Rich Markdown** — Headings, bold/italic, lists, code blocks, links, and blockquotes in responses
 - **Keychain API Keys** — Prompt once per provider; saved securely in macOS Keychain
+- **Model options at startup** — Fetches model capabilities from the provider API; prompts for reasoning effort and thinking when supported
 - **Sequential Queue** — One request at a time, up to 20 queued items
 - **Duplicate Detection** — SHA-256 hashing for consecutive identical content
 
@@ -74,6 +75,23 @@ Pass the **exact model name** from your provider's API (e.g. `claude-sonnet-4-6`
 | `glm-*` | GLM |
 
 Run `qhelp --help` for details.
+
+## Model options at startup
+
+After you pass a model name, qhelp calls the provider's **Models API** to learn what that model supports. If the metadata includes interactive options, the terminal prompts you before clipboard monitoring starts:
+
+- **Thinking** — on/off when the model supports extended thinking
+- **Reasoning effort** — choose from levels reported by the API (e.g. low, medium, high)
+
+Other supported parameters are applied silently with conservative defaults: verbosity `low`, temperature `0.0`, top_p `1.0`.
+
+If the model metadata exposes no options, qhelp skips prompts and behaves as before.
+
+**Limitations (metadata-only detection):**
+
+- **Anthropic** — full capability metadata via `GET /v1/models/{id}` (effort + thinking)
+- **Gemini** — thinking toggle and sampling params via `models.get`; no effort levels in metadata today
+- **OpenAI / Grok / Kimi / DeepSeek / Qwen / GLM** — standard `GET /models/{id}` returns no capability fields yet, so no prompts until providers add metadata (parser is forward-compatible with extended responses)
 
 ## Development
 

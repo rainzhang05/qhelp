@@ -10,26 +10,42 @@ enum ModelCapabilityParser {
     // MARK: - Anthropic
 
     static func parseAnthropic(_ data: Data) -> ModelParameterProfile {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return .empty
+        }
+        return parseAnthropicModel(json)
+    }
+
+    static func parseAnthropicModelList(_ data: Data, modelIdentifier: String) -> ModelParameterProfile {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let capabilities = json["capabilities"] as? [String: Any] else {
+              let models = json["data"] as? [[String: Any]] else {
             return .empty
         }
 
-        var profile = ModelParameterProfile()
-
-        if let effort = capabilities["effort"] as? [String: Any] {
-            profile.reasoningEffortLevels = supportedLevels(in: effort)
+        guard let model = models.first(where: { ($0["id"] as? String) == modelIdentifier }) else {
+            return .empty
         }
 
-        if let thinking = capabilities["thinking"] as? [String: Any],
-           thinking["supported"] as? Bool == true {
-            profile.supportsThinkingToggle = true
-            if let types = thinking["types"] as? [String: Any] {
-                profile.thinkingTypes = supportedThinkingTypes(in: types)
-            }
+        return parseAnthropicModel(model)
+    }
+
+    static func parseAnthropicListPagination(_ data: Data) -> (hasMore: Bool, lastID: String?) {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return (false, nil)
         }
 
-        return profile
+        return (
+            json["has_more"] as? Bool ?? false,
+            json["last_id"] as? String
+        )
+    }
+
+    static func parseAnthropicModel(_ json: [String: Any]) -> ModelParameterProfile {
+        guard let capabilities = json["capabilities"] as? [String: Any] else {
+            return .empty
+        }
+
+        return parseAnthropicStyleCapabilities(capabilities)
     }
 
     // MARK: - Gemini

@@ -43,6 +43,7 @@ enum TestSuites {
         OpenAICompatibleAPITests.self,
         GeminiAPITests.self,
         ModelCapabilityParserTests.self,
+        ModelCapabilityFetcherTests.self,
         ModelOptionsPromptTests.self,
         RequestOptionsAPITests.self,
         OverlayInteractionTests.self,

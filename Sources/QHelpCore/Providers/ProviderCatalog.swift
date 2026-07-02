@@ -92,14 +92,37 @@ public enum ProviderCatalog {
         return components?.url
     }
 
+    public static func normalizeGeminiModelIdentifier(_ modelIdentifier: String) -> String {
+        if modelIdentifier.hasPrefix("models/") {
+            return String(modelIdentifier.dropFirst("models/".count))
+        }
+        return modelIdentifier
+    }
+
     public static func anthropicModelURL(modelIdentifier: String) -> URL? {
-        URL(string: "https://api.anthropic.com/v1/models/\(modelIdentifier)")
+        URL(string: "https://api.anthropic.com/v1/models")?
+            .appendingPathComponent(modelIdentifier)
+    }
+
+    public static func anthropicModelsListURL(after: String? = nil) -> URL? {
+        var components = URLComponents(string: "https://api.anthropic.com/v1/models")
+        if let after {
+            components?.queryItems = [URLQueryItem(name: "after", value: after)]
+        }
+        return components?.url
     }
 
     public static func geminiModelURL(modelIdentifier: String, apiKey: String) -> URL? {
-        var components = URLComponents(string: "https://generativelanguage.googleapis.com/v1beta/models/\(modelIdentifier)")
-        components?.queryItems = [URLQueryItem(name: "key", value: apiKey)]
-        return components?.url
+        let normalized = normalizeGeminiModelIdentifier(modelIdentifier)
+        guard var components = URLComponents(
+            url: URL(string: "https://generativelanguage.googleapis.com/v1beta/models")!
+                .appendingPathComponent(normalized),
+            resolvingAgainstBaseURL: false
+        ) else {
+            return nil
+        }
+        components.queryItems = [URLQueryItem(name: "key", value: apiKey)]
+        return components.url
     }
 
     public static func openAIModelURL(kind: ProviderKind, modelIdentifier: String) -> URL? {

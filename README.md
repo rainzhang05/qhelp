@@ -78,19 +78,19 @@ Run `qhelp --help` for details.
 
 ## Model options at startup
 
-After you pass a model name, qhelp calls the provider's **Models API** to learn what that model supports. If the metadata includes interactive options, the terminal prompts you before clipboard monitoring starts:
+After you pass a model name, qhelp prints the provider and model, then calls the provider's **Models API** to learn what that model supports. If the metadata includes interactive options, the terminal prompts you before clipboard monitoring starts:
 
-- **Thinking** — on/off when the model supports extended thinking
-- **Reasoning effort** — choose from levels reported by the API (e.g. low, medium, high)
+- **Thinking** — on/off when the model supports extended or adaptive thinking
+- **Reasoning effort** — choose from levels reported by the API (e.g. low, medium, high); shown independently of the thinking toggle
 
 Other supported parameters are applied silently with conservative defaults: verbosity `low`, temperature `0.0`, top_p `1.0`.
 
-If the model metadata exposes no options, qhelp skips prompts and behaves as before.
+If the model metadata exposes no options, qhelp skips prompts and behaves as before. When capability lookup fails, a note is printed with the HTTP status so you know why prompts were skipped.
 
 **Limitations (metadata-only detection):**
 
-- **Anthropic** — full capability metadata via `GET /v1/models/{id}` (effort + thinking)
-- **Gemini** — thinking toggle and sampling params via `models.get`; no effort levels in metadata today
+- **Anthropic** — capability metadata via `GET /v1/models/{id}` with list-models fallback (effort + thinking)
+- **Gemini** — thinking toggle and sampling params via `models.get`; model IDs with a `models/` prefix are normalized automatically; no effort levels in metadata today
 - **OpenAI / Grok / Kimi / DeepSeek / Qwen / GLM** — standard `GET /models/{id}` returns no capability fields yet, so no prompts until providers add metadata (parser is forward-compatible with extended responses)
 
 ## Development

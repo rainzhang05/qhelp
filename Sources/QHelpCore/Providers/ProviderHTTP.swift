@@ -74,19 +74,28 @@ enum ProviderHTTP {
     }
 
     static func fetchData(_ request: URLRequest, session: URLSession) async throws -> Data {
+        let (data, response) = try await fetchResponse(request, session: session)
+
+        guard response.statusCode == 200 else {
+            throw ProviderError.apiError(
+                statusCode: response.statusCode,
+                message: "Model metadata request failed (HTTP \(response.statusCode))"
+            )
+        }
+
+        return data
+    }
+
+    static func fetchResponse(
+        _ request: URLRequest,
+        session: URLSession
+    ) async throws -> (Data, HTTPURLResponse) {
         let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ProviderError.invalidResponse
         }
 
-        guard httpResponse.statusCode == 200 else {
-            throw ProviderError.apiError(
-                statusCode: httpResponse.statusCode,
-                message: "Model metadata request failed (HTTP \(httpResponse.statusCode))"
-            )
-        }
-
-        return data
+        return (data, httpResponse)
     }
 }

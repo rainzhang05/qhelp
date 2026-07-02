@@ -6,6 +6,7 @@ enum RequestOptionsAPITests: TestCase {
 
     static func run() throws {
         try testAnthropicRequestOptions()
+        try testAnthropicEffortWithoutThinking()
         try testOpenAICompatibleRequestOptions()
         try testGeminiRequestOptions()
         try testFetcherParserRouting()
@@ -42,6 +43,38 @@ enum RequestOptionsAPITests: TestCase {
         let enabledThinking = enabledBody["thinking"] as? [String: Any]
         try assertEqual(enabledThinking?["type"] as? String, "enabled")
         try assertEqual(enabledThinking?["budget_tokens"] as? Int, AnthropicAPI.defaultThinkingBudgetTokens)
+    }
+
+    private static func testAnthropicEffortWithoutThinking() throws {
+        let options = ModelRequestOptions(
+            reasoningEffort: "high",
+            thinkingEnabled: false
+        )
+
+        let body = AnthropicAPI.buildRequestBody(
+            modelIdentifier: "claude-opus-4-8",
+            content: .text("hello"),
+            options: options
+        )
+
+        try assertTrue(body["thinking"] == nil)
+
+        let outputConfig = body["output_config"] as? [String: Any]
+        try assertEqual(outputConfig?["effort"] as? String, "high")
+
+        let adaptiveOnly = ModelRequestOptions(
+            reasoningEffort: "medium",
+            thinkingEnabled: true,
+            thinkingType: "adaptive"
+        )
+        let adaptiveBody = AnthropicAPI.buildRequestBody(
+            modelIdentifier: "claude-opus-4-8",
+            content: .text("hello"),
+            options: adaptiveOnly
+        )
+        let thinking = adaptiveBody["thinking"] as? [String: Any]
+        try assertEqual(thinking?["type"] as? String, "adaptive")
+        try assertTrue(thinking?["budget_tokens"] == nil)
     }
 
     private static func testOpenAICompatibleRequestOptions() throws {

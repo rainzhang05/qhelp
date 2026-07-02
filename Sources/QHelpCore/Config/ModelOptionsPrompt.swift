@@ -18,20 +18,16 @@ public enum ModelOptionsPrompt {
         }
 
         var options = ModelRequestOptions()
-        var thinkingEnabled: Bool?
 
         if profile.supportsThinkingToggle {
-            thinkingEnabled = promptThinkingToggle()
+            let thinkingEnabled = promptThinkingToggle(thinkingTypes: profile.thinkingTypes)
             options.thinkingEnabled = thinkingEnabled
-            if thinkingEnabled == true {
+            if thinkingEnabled, !profile.thinkingTypes.isEmpty {
                 options.thinkingType = preferredThinkingType(from: profile.thinkingTypes)
             }
         }
 
-        let shouldPromptEffort = !profile.reasoningEffortLevels.isEmpty
-            && (thinkingEnabled == true || !profile.supportsThinkingToggle)
-
-        if shouldPromptEffort,
+        if !profile.reasoningEffortLevels.isEmpty,
            let effort = promptReasoningEffort(levels: profile.reasoningEffortLevels) {
             options.reasoningEffort = effort
         }
@@ -57,9 +53,13 @@ public enum ModelOptionsPrompt {
         return types.first
     }
 
-    private static func promptThinkingToggle() -> Bool {
+    private static func promptThinkingToggle(thinkingTypes: [String]) -> Bool {
         print("")
-        print("Enable extended thinking? [y/N]")
+        if thinkingTypes == ["adaptive"] {
+            print("Enable adaptive thinking? [y/N]")
+        } else {
+            print("Enable extended thinking? [y/N]")
+        }
         let input = lineReader()?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
         return input == "y" || input == "yes"
     }

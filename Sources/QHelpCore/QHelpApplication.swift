@@ -21,6 +21,12 @@ public enum QHelpApplication {
             exit(1)
         }
 
+        if let kind = ProviderRegistry.providerKind(for: config.modelName) {
+            print("qhelp\n")
+            print("Provider: \(kind.displayName)")
+            print("Model: \(config.modelName)\n")
+        }
+
         let profile = fetchCapabilities(modelName: config.modelName, apiKey: apiKey)
         let options = ModelOptionsPrompt.prompt(for: profile)
 
@@ -62,9 +68,6 @@ public enum QHelpApplication {
         sigtermSource.setEventHandler { shutdown() }
         sigtermSource.resume()
 
-        print("qhelp\n")
-        print("Provider: \(provider.providerName)")
-        print("Model: \(provider.displayName)\n")
         print("Watching clipboard...\n")
         print("Press Ctrl+C to quit.")
 

@@ -6,6 +6,8 @@ enum ModelCapabilityParserTests: TestCase {
 
     static func run() throws {
         try testAnthropicParser()
+        try testAnthropicOpus48Parser()
+        try testAnthropicListParser()
         try testGeminiParser()
         try testOpenAICompatibleParser()
         try testEmptyResponses()
@@ -38,6 +40,78 @@ enum ModelCapabilityParserTests: TestCase {
         try assertTrue(profile.supportsThinkingToggle)
         try assertEqual(profile.thinkingTypes, ["adaptive", "enabled"])
         try assertFalse(profile.supportsTemperature)
+    }
+
+    private static func testAnthropicOpus48Parser() throws {
+        let json = """
+        {
+          "id": "claude-opus-4-8",
+          "capabilities": {
+            "effort": {
+              "supported": true,
+              "low": { "supported": true },
+              "medium": { "supported": true },
+              "high": { "supported": true },
+              "max": { "supported": true }
+            },
+            "thinking": {
+              "supported": true,
+              "types": {
+                "enabled": { "supported": false },
+                "adaptive": { "supported": true }
+              }
+            }
+          }
+        }
+        """
+
+        let profile = ModelCapabilityFetcher.parseResponse(kind: .anthropic, data: Data(json.utf8))
+        try assertEqual(profile.reasoningEffortLevels, ["low", "medium", "high", "max"])
+        try assertTrue(profile.supportsThinkingToggle)
+        try assertEqual(profile.thinkingTypes, ["adaptive"])
+    }
+
+    private static func testAnthropicListParser() throws {
+        let json = """
+        {
+          "data": [
+            {
+              "id": "claude-sonnet-4-6",
+              "capabilities": {
+                "effort": {
+                  "supported": true,
+                  "low": { "supported": true }
+                }
+              }
+            },
+            {
+              "id": "claude-opus-4-8",
+              "capabilities": {
+                "effort": {
+                  "supported": true,
+                  "high": { "supported": true }
+                },
+                "thinking": {
+                  "supported": true,
+                  "types": {
+                    "adaptive": { "supported": true }
+                  }
+                }
+              }
+            }
+          ],
+          "has_more": true,
+          "last_id": "claude-opus-4-8"
+        }
+        """
+
+        let profile = ModelCapabilityFetcher.parseAnthropicList(
+            data: Data(json.utf8),
+            modelIdentifier: "claude-opus-4-8"
+        )
+        try assertEqual(profile.reasoningEffortLevels, ["high"])
+        try assertTrue(profile.supportsThinkingToggle)
+        try assertEqual(profile.thinkingTypes, ["adaptive"])
     }
 
     private static func testGeminiParser() throws {

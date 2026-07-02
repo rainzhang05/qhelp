@@ -54,12 +54,15 @@ public enum AnthropicAPI {
 
     static func applyOptions(_ options: ModelRequestOptions, to body: inout [String: Any]) {
         if options.thinkingEnabled == true, let type = options.thinkingType {
-            if type == "enabled" {
+            switch type {
+            case "enabled":
                 body["thinking"] = [
                     "type": "enabled",
                     "budget_tokens": defaultThinkingBudgetTokens
                 ] as [String: Any]
-            } else {
+            case "adaptive":
+                body["thinking"] = ["type": "adaptive"]
+            default:
                 body["thinking"] = ["type": type]
             }
         }

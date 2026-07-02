@@ -8,7 +8,7 @@ enum ModelOptionsPromptTests: TestCase {
         defer { ModelOptionsPrompt.setLineReader(nil) }
 
         try testEmptyProfileReturnsNone()
-        try testThinkingOffSkipsEffort()
+        try testThinkingOffStillPromptsEffort()
         try testThinkingOnWithEffortAndAutoDefaults()
         try testEffortOnlyProfile()
     }
@@ -18,8 +18,8 @@ enum ModelOptionsPromptTests: TestCase {
         try assertEqual(options, .none)
     }
 
-    private static func testThinkingOffSkipsEffort() throws {
-        var inputs = ["n"]
+    private static func testThinkingOffStillPromptsEffort() throws {
+        var inputs = ["n", "2"]
         ModelOptionsPrompt.setLineReader {
             guard !inputs.isEmpty else { return nil }
             return inputs.removeFirst()
@@ -33,7 +33,7 @@ enum ModelOptionsPromptTests: TestCase {
 
         let options = ModelOptionsPrompt.prompt(for: profile)
         try assertEqual(options.thinkingEnabled, false)
-        try assertEqual(options.reasoningEffort, nil)
+        try assertEqual(options.reasoningEffort, "medium")
         try assertEqual(options.thinkingType, nil)
     }
 

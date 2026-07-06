@@ -5,11 +5,9 @@ public enum OpenAICompatibleAPI {
     public static let maxTokens = 4096
     public static let imagePrompt = "Describe this clipboard content."
 
-    public static func buildRequestBody(
-        modelIdentifier: String,
+    public static func buildUserMessage(
         content: ClipboardContent,
-        supportsImages: Bool,
-        options: ModelRequestOptions = .none
+        supportsImages: Bool
     ) throws -> [String: Any] {
         let messageContent: Any
 
@@ -37,15 +35,21 @@ public enum OpenAICompatibleAPI {
             ]
         }
 
+        return [
+            "role": "user",
+            "content": messageContent
+        ]
+    }
+
+    public static func buildRequestBody(
+        modelIdentifier: String,
+        messages: [[String: Any]],
+        options: ModelRequestOptions = .none
+    ) -> [String: Any] {
         var body: [String: Any] = [
             "model": modelIdentifier,
             "max_tokens": maxTokens,
-            "messages": [
-                [
-                    "role": "user",
-                    "content": messageContent
-                ] as [String: Any]
-            ]
+            "messages": messages
         ]
 
         applyOptions(options, to: &body)

@@ -17,6 +17,7 @@ public final class AnthropicProvider: AIProvider {
     private let apiURL = URL(string: "https://api.anthropic.com/v1/messages")!
     private let session: URLSession
     private let timeoutInterval: TimeInterval = 120
+    private var history: [[String: Any]] = []
 
     // MARK: - Initialization
 
@@ -52,14 +53,19 @@ public final class AnthropicProvider: AIProvider {
         request.setValue(AnthropicAPI.apiVersion, forHTTPHeaderField: "anthropic-version")
         request.timeoutInterval = timeoutInterval
 
+        let userMessage = AnthropicAPI.buildUserMessage(content: content)
+        let currentMessages = history + [userMessage]
+
         let body = AnthropicAPI.buildRequestBody(
             modelIdentifier: modelIdentifier,
-            content: content,
+            messages: currentMessages,
             options: requestOptions
         )
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        return try await performRequest(request)
+        let responseText = try await performRequest(request)
+        history = currentMessages + [["role": "assistant", "content": responseText]]
+        return responseText
     }
 
     public func cancelInFlightRequest() {

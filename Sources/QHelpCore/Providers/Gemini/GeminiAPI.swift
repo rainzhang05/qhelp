@@ -4,10 +4,9 @@ public enum GeminiAPI {
 
     public static let imagePrompt = "Describe this clipboard content."
 
-    public static func buildRequestBody(
+    public static func buildUserMessage(
         content: ClipboardContent,
-        supportsImages: Bool,
-        options: ModelRequestOptions = .none
+        supportsImages: Bool
     ) throws -> [String: Any] {
         var parts: [[String: Any]] = []
 
@@ -29,13 +28,18 @@ public enum GeminiAPI {
             parts.append(["text": imagePrompt])
         }
 
+        return [
+            "role": "user",
+            "parts": parts
+        ]
+    }
+
+    public static func buildRequestBody(
+        contents: [[String: Any]],
+        options: ModelRequestOptions = .none
+    ) -> [String: Any] {
         var body: [String: Any] = [
-            "contents": [
-                [
-                    "role": "user",
-                    "parts": parts
-                ] as [String: Any]
-            ]
+            "contents": contents
         ]
 
         applyOptions(options, to: &body)

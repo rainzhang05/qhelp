@@ -9,11 +9,7 @@ public enum AnthropicAPI {
     public static let maxRateLimitRetries = 2
     public static let defaultThinkingBudgetTokens = 4096
 
-    public static func buildRequestBody(
-        modelIdentifier: String,
-        content: ClipboardContent,
-        options: ModelRequestOptions = .none
-    ) -> [String: Any] {
+    public static func buildUserMessage(content: ClipboardContent) -> [String: Any] {
         let messageContent: Any
 
         switch content {
@@ -37,15 +33,21 @@ public enum AnthropicAPI {
             ]
         }
 
+        return [
+            "role": "user",
+            "content": messageContent
+        ]
+    }
+
+    public static func buildRequestBody(
+        modelIdentifier: String,
+        messages: [[String: Any]],
+        options: ModelRequestOptions = .none
+    ) -> [String: Any] {
         var body: [String: Any] = [
             "model": modelIdentifier,
             "max_tokens": maxTokens,
-            "messages": [
-                [
-                    "role": "user",
-                    "content": messageContent
-                ] as [String: Any]
-            ]
+            "messages": messages
         ]
 
         applyOptions(options, to: &body)

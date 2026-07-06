@@ -13,6 +13,7 @@ public final class OpenAICompatibleProvider: AIProvider {
     private let supportsImages: Bool
     private let requestOptions: ModelRequestOptions
     private let session: URLSession
+    private var history: [[String: Any]] = []
 
     public init(
         kind: ProviderKind,
@@ -35,10 +36,15 @@ public final class OpenAICompatibleProvider: AIProvider {
     }
 
     public func send(content: ClipboardContent) async throws -> String {
-        let body = try OpenAICompatibleAPI.buildRequestBody(
-            modelIdentifier: modelIdentifier,
+        let userMessage = try OpenAICompatibleAPI.buildUserMessage(
             content: content,
-            supportsImages: supportsImages,
+            supportsImages: supportsImages
+        )
+        let currentMessages = history + [userMessage]
+
+        let body = OpenAICompatibleAPI.buildRequestBody(
+            modelIdentifier: modelIdentifier,
+            messages: currentMessages,
             options: requestOptions
         )
 
@@ -49,12 +55,14 @@ public final class OpenAICompatibleProvider: AIProvider {
         request.timeoutInterval = ProviderHTTP.timeoutInterval
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        return try await ProviderHTTP.performRequest(
+        let responseText = try await ProviderHTTP.performRequest(
             request,
             session: session,
             parseResponse: OpenAICompatibleAPI.parseResponse,
             parseError: ProviderHTTP.parseOpenAIError
         )
+        history = currentMessages + [["role": "assistant", "content": responseText]]
+        return responseText
     }
 
     public func cancelInFlightRequest() {

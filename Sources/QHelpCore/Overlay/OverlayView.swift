@@ -28,45 +28,10 @@ struct OverlayView: View {
     }
 
     private var cardContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            headerView
-            contentView
-        }
-        .padding(16)
-        .frame(width: 480, alignment: .leading)
-        .fixedSize(horizontal: false, vertical: true)
-    }
-
-    // MARK: - Header
-
-    private var headerView: some View {
-        HStack(spacing: 8) {
-            Image(systemName: isError ? "exclamationmark.triangle.fill" : "sparkles")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(isError ? .orange : .secondary)
-
-            Text("qhelp")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-
-            Spacer()
-
-            if !isError {
-                Button(action: { OverlayClipboard.copy(text) }) {
-                    Label("Copy all", systemImage: "doc.on.doc")
-                        .labelStyle(.titleAndIcon)
-                        .font(.caption)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
-            }
-
-            Text("Click to dismiss")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .contentShape(Rectangle())
-                .onTapGesture(perform: onDismiss)
-        }
+        contentView
+            .padding(16)
+            .frame(width: 480, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: - Content

@@ -1,20 +1,10 @@
 # qhelp
 
-A lightweight macOS command-line utility that monitors the system clipboard and sends new content (text or images) to an AI model, displaying the response in a native Liquid Glass overlay.
+qhelp is a macOS clipboard-to-AI helper. Run it with an exact model name, copy text or an image, and qhelp sends the clipboard content to the matching provider. The response appears in a floating Liquid Glass overlay.
 
-## Features
+## Install
 
-- **Clipboard Monitoring** — Watches `NSPasteboard` for any new content
-- **Multi-Provider** — Anthropic, OpenAI, Gemini, Grok, Kimi, DeepSeek, Qwen, GLM
-- **Liquid Glass Overlay** — System-native glass on macOS 26+ (material fallback on older macOS)
-- **Interactive Overlay** — Scroll and copy text; click header to dismiss; never steals focus
-- **Rich Markdown** — Headings, bold/italic, lists, code blocks, links, and blockquotes in responses
-- **Keychain API Keys** — Prompt once per provider; saved securely in macOS Keychain
-- **Model options at startup** — Fetches model capabilities from the provider API; prompts for reasoning effort and thinking when supported
-- **Sequential Queue** — One request at a time, up to 20 queued items
-- **Duplicate Detection** — SHA-256 hashing for consecutive identical content
-
-## Installation
+Requires macOS 13 or newer and Swift 5.9 or newer.
 
 ```bash
 git clone https://github.com/rainzhang05/qhelp
@@ -23,86 +13,63 @@ chmod +x Scripts/*.sh
 ./Scripts/install.sh
 ```
 
+The install script builds a release binary and installs `qhelp` to `/usr/local/bin` when possible, otherwise to `~/.local/bin`.
+
+## Use
+
+Start qhelp with the exact API model name you want to use:
+
 ```bash
 qhelp claude-sonnet-4-6
 qhelp gpt-4o
 qhelp gemini-2.5-flash
 ```
 
+Then copy text or an image from any app. qhelp watches the system clipboard, processes new clipboard items one at a time, and shows the AI response in the bottom-right overlay.
+
+Press `Ctrl+C` in the terminal to quit.
+
+## Overlay Controls
+
+- Scroll the overlay to read longer responses.
+- Select and copy text directly from the overlay.
+- Click the overlay, then press `c` to copy the full raw response.
+- Click the overlay, then press `Space` to dismiss it.
+- qhelp runs as an accessory app, so the overlay does not switch you away from your current app.
+
 ## API Keys
 
-On first use of each provider, qhelp prompts for your API key (hidden input) and saves it to the **macOS Keychain**.
+On first use, qhelp prompts for the provider API key and saves it in the macOS Keychain. Environment variables override Keychain values.
 
-Environment variables override Keychain when set:
+| Provider | Model prefix | Environment variable |
+| --- | --- | --- |
+| Anthropic | `claude-*` | `ANTHROPIC_API_KEY` |
+| OpenAI | `gpt-*`, `o1*`, `o3*`, `o4*` | `OPENAI_API_KEY` |
+| Google Gemini | `gemini-*` | `GEMINI_API_KEY` |
+| xAI Grok | `grok-*` | `XAI_API_KEY` |
+| Moonshot Kimi | `kimi-*`, `moonshot-*` | `MOONSHOT_API_KEY` |
+| DeepSeek | `deepseek-*` | `DEEPSEEK_API_KEY` |
+| Qwen / DashScope | `qwen-*` | `DASHSCOPE_API_KEY` |
+| Zhipu GLM | `glm-*` | `ZHIPU_API_KEY` |
 
-| Provider | Environment Variable |
-|----------|---------------------|
-| Anthropic | `ANTHROPIC_API_KEY` |
-| OpenAI | `OPENAI_API_KEY` |
-| Gemini | `GEMINI_API_KEY` |
-| Grok | `XAI_API_KEY` |
-| Kimi | `MOONSHOT_API_KEY` |
-| DeepSeek | `DEEPSEEK_API_KEY` |
-| Qwen | `DASHSCOPE_API_KEY` |
-| GLM | `ZHIPU_API_KEY` |
+Optional: set `QWEN_BASE_URL` to override the default Qwen/DashScope endpoint.
 
-Optional: `QWEN_BASE_URL` to override the default international DashScope endpoint.
+qhelp routes only by model prefix and sends the model name to the provider unchanged. If the model name is invalid, the provider returns the error.
 
-## Overlay Behavior
+## Model Options
 
-- Appears bottom-right above the Dock
-- Fades in and **stays visible** until dismissed
-- **Click the header** ("Click to dismiss") to fade out
-- **Scroll and copy** response text in the content area
-- **Copy all** button copies the full raw response (including markdown)
-- Responses render as **rich markdown** (headings, lists, code blocks, links)
-- Drag-select works within each block; use Copy all for the entire response
-- Does **not** activate qhelp or steal focus from your current app
-
-## Model names
-
-Pass the **exact model name** from your provider's API (e.g. `claude-sonnet-4-6`, `gpt-4o`, `gemini-2.5-flash`). qhelp routes by name prefix to the correct provider and sends the string verbatim — no curated alias list. If the model does not exist, the provider returns an API error.
-
-| Prefix | Provider |
-|--------|----------|
-| `claude-*` | Anthropic |
-| `gpt-*`, `o1*`, `o3*`, `o4*` | OpenAI |
-| `gemini-*` | Gemini |
-| `grok-*` | Grok |
-| `kimi-*`, `moonshot-*` | Kimi |
-| `deepseek-*` | DeepSeek |
-| `qwen-*` | Qwen |
-| `glm-*` | GLM |
-
-Run `qhelp --help` for details.
-
-## Model options at startup
-
-After you pass a model name, qhelp prints the provider and model, then calls the provider's **Models API** to learn what that model supports. If the metadata includes interactive options, the terminal prompts you before clipboard monitoring starts:
-
-- **Thinking** — on/off when the model supports extended or adaptive thinking
-- **Reasoning effort** — choose from levels reported by the API (e.g. low, medium, high); shown independently of the thinking toggle
-
-Other supported parameters are applied silently with conservative defaults: verbosity `low`, temperature `0.0`, top_p `1.0`.
-
-If the model metadata exposes no options, qhelp skips prompts and behaves as before. When capability lookup fails, a note is printed with the HTTP status so you know why prompts were skipped.
-
-**Limitations (metadata-only detection):**
-
-- **Anthropic** — capability metadata via `GET /v1/models/{id}` with list-models fallback (effort + thinking)
-- **Gemini** — thinking toggle and sampling params via `models.get`; model IDs with a `models/` prefix are normalized automatically; no effort levels in metadata today
-- **OpenAI / Grok / Kimi / DeepSeek / Qwen / GLM** — standard `GET /models/{id}` returns no capability fields yet, so no prompts until providers add metadata (parser is forward-compatible with extended responses)
+At startup, qhelp checks provider model metadata. When the provider reports supported options, qhelp may ask whether to enable thinking or which reasoning effort to use. If no supported options are reported, qhelp starts clipboard monitoring without extra prompts.
 
 ## Development
 
 ```bash
 swift build -c release
 swift run -c release qhelpTests
-swift run -c release qhelpTests CLIParserTests   # single suite
+swift run -c release qhelpTests ProviderCatalogTests
 ```
 
-GitHub Actions CI runs build and per-category test workflows on push/PR to `main`.
+Run `qhelp --help` for the built-in command help.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

@@ -1,6 +1,6 @@
 import AppKit
 
-public enum QHelpApplication {
+public enum ClipAIApplication {
 
     public static func run(with arguments: [String]) {
         let config = CLIParser.parse(arguments)
@@ -22,7 +22,7 @@ public enum QHelpApplication {
         }
 
         if let kind = ProviderRegistry.providerKind(for: config.modelName) {
-            print("qhelp\n")
+            print("ClipAI\n")
             print("Provider: \(kind.displayName)")
             print("Model: \(config.modelName)\n")
         }

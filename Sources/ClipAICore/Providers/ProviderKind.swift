@@ -37,7 +37,7 @@ public enum ProviderKind: String, CaseIterable, Sendable {
     }
 
     public var keychainService: String {
-        "qhelp.\(rawValue)"
+        "clipai.\(rawValue)"
     }
 
     public var defaultSupportsImages: Bool {

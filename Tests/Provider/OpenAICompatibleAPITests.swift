@@ -1,5 +1,5 @@
 import Foundation
-import QHelpCore
+import ClipAICore
 
 enum OpenAICompatibleAPITests: TestCase {
     static let name = "OpenAICompatibleAPITests"

@@ -42,7 +42,7 @@ public enum CLIParser {
             printUsage()
             exit(0)
         case .version:
-            print("qhelp \(version)")
+            print("clip \(version)")
             exit(0)
         case .invalidUsage:
             printUsage()
@@ -52,10 +52,10 @@ public enum CLIParser {
 
     public static func usageText() -> String {
         """
-        qhelp — Clipboard-to-AI utility for macOS
+        ClipAI — Clipboard-to-AI utility for macOS
 
         USAGE:
-          qhelp <model>
+          clip <model>
 
         DESCRIPTION:
           Monitors the macOS system clipboard. When new content appears
@@ -63,7 +63,7 @@ public enum CLIParser {
           the response in a floating overlay.
 
           Pass the exact model name from your provider's API documentation.
-          qhelp routes by name prefix and sends the model string verbatim.
+          ClipAI routes by name prefix and sends the model string verbatim.
           Invalid or unavailable models return an API error from the provider.
 
         OVERLAY:

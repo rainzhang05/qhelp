@@ -14,4 +14,4 @@ jobs:
       - name: Build
         run: swift build -c release
       - name: Run ClipboardContentTests
-        run: swift run -c release qhelpTests ClipboardContentTests
+        run: swift run -c release ClipAITests ClipboardContentTests

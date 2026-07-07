@@ -1,5 +1,5 @@
 import Foundation
-import QHelpCore
+import ClipAICore
 
 enum RequestOptionsAPITests: TestCase {
     static let name = "RequestOptionsAPITests"

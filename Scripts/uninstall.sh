@@ -3,11 +3,11 @@ set -e
 
 INSTALL_DIR="/usr/local/bin"
 
-if [ -f "$INSTALL_DIR/qhelp" ]; then
-    echo "Removing $INSTALL_DIR/qhelp..."
-    sudo rm "$INSTALL_DIR/qhelp"
+if [ -f "$INSTALL_DIR/clip" ]; then
+    echo "Removing $INSTALL_DIR/clip..."
+    sudo rm "$INSTALL_DIR/clip"
     echo ""
-    echo "✓ qhelp uninstalled successfully."
+    echo "✓ ClipAI uninstalled successfully."
 else
-    echo "qhelp is not installed at $INSTALL_DIR/qhelp."
+    echo "ClipAI is not installed at $INSTALL_DIR/clip."
 fi

@@ -1,5 +1,5 @@
 import Foundation
-import QHelpCore
+import ClipAICore
 
 enum AnthropicAPITests: TestCase {
     static let name = "AnthropicAPITests"

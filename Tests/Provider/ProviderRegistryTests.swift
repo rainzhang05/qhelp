@@ -1,5 +1,5 @@
 import Foundation
-import QHelpCore
+import ClipAICore
 
 enum ProviderRegistryTests: TestCase {
     static let name = "ProviderRegistryTests"

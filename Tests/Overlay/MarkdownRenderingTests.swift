@@ -1,6 +1,6 @@
 import AppKit
 import Foundation
-@testable import QHelpCore
+@testable import ClipAICore
 
 enum MarkdownRenderingTests: TestCase {
     static let name = "MarkdownRenderingTests"

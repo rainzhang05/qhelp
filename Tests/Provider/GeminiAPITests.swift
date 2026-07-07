@@ -1,5 +1,5 @@
 import Foundation
-import QHelpCore
+import ClipAICore
 
 enum GeminiAPITests: TestCase {
     static let name = "GeminiAPITests"

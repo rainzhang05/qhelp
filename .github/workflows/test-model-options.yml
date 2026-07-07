@@ -14,7 +14,7 @@ jobs:
       - name: Build
         run: swift build -c release
       - name: Run ModelCapabilityParserTests
-        run: swift run -c release qhelpTests ModelCapabilityParserTests
+        run: swift run -c release ClipAITests ModelCapabilityParserTests
 
   test-model-options-prompt:
     runs-on: macos-26
@@ -23,7 +23,7 @@ jobs:
       - name: Build
         run: swift build -c release
       - name: Run ModelOptionsPromptTests
-        run: swift run -c release qhelpTests ModelOptionsPromptTests
+        run: swift run -c release ClipAITests ModelOptionsPromptTests
 
   test-request-options-api:
     runs-on: macos-26
@@ -32,4 +32,4 @@ jobs:
       - name: Build
         run: swift build -c release
       - name: Run RequestOptionsAPITests
-        run: swift run -c release qhelpTests RequestOptionsAPITests
+        run: swift run -c release ClipAITests RequestOptionsAPITests

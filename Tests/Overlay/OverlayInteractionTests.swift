@@ -1,6 +1,6 @@
 import AppKit
 import Foundation
-@testable import QHelpCore
+@testable import ClipAICore
 
 enum OverlayInteractionTests: TestCase {
     static let name = "OverlayInteractionTests"

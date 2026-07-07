@@ -1,5 +1,5 @@
 import Foundation
-import QHelpCore
+import ClipAICore
 
 enum ModelCapabilityParserTests: TestCase {
     static let name = "ModelCapabilityParserTests"

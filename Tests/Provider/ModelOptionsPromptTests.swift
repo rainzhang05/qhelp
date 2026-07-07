@@ -1,5 +1,5 @@
 import Foundation
-import QHelpCore
+import ClipAICore
 
 enum ModelOptionsPromptTests: TestCase {
     static let name = "ModelOptionsPromptTests"

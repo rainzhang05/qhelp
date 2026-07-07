@@ -62,6 +62,12 @@ final class ClipboardMonitor {
         guard currentChangeCount != lastChangeCount else { return }
         lastChangeCount = currentChangeCount
 
+        // Ignore copies triggered by ClipAI itself
+        let ignoreType = NSPasteboard.PasteboardType("com.clipai.ignore")
+        if pasteboard.types?.contains(ignoreType) == true {
+            return
+        }
+
         // Read content from clipboard
         guard let content = readContent(from: pasteboard) else {
             print("Unsupported clipboard format (ignored).")

@@ -1,5 +1,5 @@
 import Foundation
-import QHelpCore
+import ClipAICore
 
 enum ClipboardContentTests: TestCase {
     static let name = "ClipboardContentTests"

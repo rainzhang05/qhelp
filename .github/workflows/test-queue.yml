@@ -14,4 +14,4 @@ jobs:
       - name: Build
         run: swift build -c release
       - name: Run RequestQueueTests
-        run: swift run -c release qhelpTests RequestQueueTests
+        run: swift run -c release ClipAITests RequestQueueTests

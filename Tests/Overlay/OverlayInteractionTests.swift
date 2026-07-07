@@ -133,5 +133,14 @@ enum OverlayInteractionTests: TestCase {
 
         entryKeyboardState.beginEntry()
         try assertTrue(entryKeyboardState.consumeCopyIfNeeded())
+
+        let displayState = OverlayDisplayState(text: "first", isError: false)
+        try assertFalse(displayState.showsCopiedToast)
+        displayState.showCopiedToast()
+        try assertTrue(displayState.showsCopiedToast)
+        displayState.update(text: "second", isError: true)
+        try assertEqual(displayState.text, "second")
+        try assertTrue(displayState.isError)
+        try assertFalse(displayState.showsCopiedToast)
     }
 }

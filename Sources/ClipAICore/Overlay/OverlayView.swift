@@ -1,14 +1,40 @@
 import SwiftUI
 
+final class OverlayDisplayState: ObservableObject {
+    @Published var text: String
+    @Published var isError: Bool
+    @Published var showsCopiedToast = false
+
+    init(text: String, isError: Bool) {
+        self.text = text
+        self.isError = isError
+    }
+
+    func update(text: String, isError: Bool) {
+        self.text = text
+        self.isError = isError
+        showsCopiedToast = false
+    }
+
+    func showCopiedToast() {
+        showsCopiedToast = true
+    }
+}
+
 /// The SwiftUI view displayed inside the floating overlay panel.
 struct OverlayView: View {
-    let text: String
-    let isError: Bool
+    @ObservedObject private var displayState: OverlayDisplayState
     let onDismiss: () -> Void
 
     init(text: String, isError: Bool = false, onDismiss: @escaping () -> Void = {}) {
-        self.text = text
-        self.isError = isError
+        self.init(
+            displayState: OverlayDisplayState(text: text, isError: isError),
+            onDismiss: onDismiss
+        )
+    }
+
+    init(displayState: OverlayDisplayState, onDismiss: @escaping () -> Void = {}) {
+        self.displayState = displayState
         self.onDismiss = onDismiss
     }
 
@@ -19,12 +45,24 @@ struct OverlayView: View {
 
     /// Whether the overlay renders plain text instead of markdown.
     var usesPlainTextContent: Bool {
-        isError
+        displayState.isError
+    }
+
+    var text: String {
+        displayState.text
+    }
+
+    var isError: Bool {
+        displayState.isError
     }
 
     var body: some View {
-        cardContent
-            .modifier(LiquidGlassCard())
+        VStack(alignment: .trailing, spacing: 8) {
+            copiedToastSlot
+            cardContent
+                .modifier(LiquidGlassCard())
+        }
+        .animation(.easeOut(duration: 0.18), value: displayState.showsCopiedToast)
     }
 
     private var cardContent: some View {
@@ -36,18 +74,33 @@ struct OverlayView: View {
 
     // MARK: - Content
 
+    private var copiedToastSlot: some View {
+        ZStack(alignment: .trailing) {
+            if displayState.showsCopiedToast {
+                Text("Copied!")
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .modifier(LiquidGlassCard())
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
+        }
+        .frame(width: 480, height: 34, alignment: .trailing)
+    }
+
     @ViewBuilder
     private var contentView: some View {
         ScrollView(.vertical, showsIndicators: true) {
-            if isError {
-                Text(text)
+            if displayState.isError {
+                Text(displayState.text)
                     .font(.body)
                     .foregroundStyle(.primary)
                     .lineSpacing(4)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
             } else {
-                ResponseMarkdownView(content: text)
+                ResponseMarkdownView(content: displayState.text)
             }
         }
         .frame(maxHeight: 300)

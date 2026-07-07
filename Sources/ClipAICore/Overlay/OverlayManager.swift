@@ -42,6 +42,7 @@ final class OverlayManager {
     private let keyboardMonitor = OverlayKeyboardMonitor()
     private let keyboardState = OverlayEntryKeyboardState()
     private var currentResponseText = ""
+    private var displayState: OverlayDisplayState?
 
     private let animationDuration: TimeInterval = 0.3
     private let contentReplaceDuration: TimeInterval = 0.15
@@ -60,24 +61,38 @@ final class OverlayManager {
         keyboardState.beginEntry()
 
         let displayText = text.isEmpty ? "(empty response)" : text
-        let overlayView = OverlayView(text: displayText, isError: isError) { [weak self] in
-            self?.dismiss()
+        let state: OverlayDisplayState
+        let needsHostingView = displayState == nil || panel.contentView == nil
+        if let displayState {
+            displayState.update(text: displayText, isError: isError)
+            state = displayState
+        } else {
+            state = OverlayDisplayState(text: displayText, isError: isError)
+            displayState = state
         }
 
         panel.onSpacePressed = { [weak self] in
-            self?.dismiss()
+            self?.dismiss(slideOut: true)
             return true
         }
         panel.onCPressed = { [weak self] in
             self?.copyCurrentEntryIfNeeded() ?? false
         }
 
-        let hostingView = configureHostingView(rootView: overlayView)
-        let contentSize = hostingView.fittingSize
-        hostingView.setFrameSize(contentSize)
-
         let wasVisible = panel.isVisible
-        panel.contentView = hostingView
+
+        if needsHostingView {
+            let overlayView = OverlayView(displayState: state) { [weak self] in
+                self?.dismiss()
+            }
+            let hostingView = configureHostingView(rootView: overlayView)
+            panel.contentView = hostingView
+        }
+
+        guard let contentView = panel.contentView else { return }
+        contentView.layoutSubtreeIfNeeded()
+        let contentSize = contentView.fittingSize
+        contentView.setFrameSize(contentSize)
         positionPanel(panel, size: contentSize)
 
         if !wasVisible {
@@ -105,7 +120,7 @@ final class OverlayManager {
 
     // MARK: - Private
 
-    private func dismiss() {
+    private func dismiss(slideOut: Bool = false) {
         guard let panel = panel, panel.isVisible else { return }
 
         keyboardMonitor.stop()
@@ -114,6 +129,15 @@ final class OverlayManager {
             context.duration = animationDuration
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             panel.animator().alphaValue = 0
+            if slideOut {
+                var frame = panel.frame
+                if let screen = panel.screen ?? NSScreen.main {
+                    frame.origin.x = screen.visibleFrame.maxX + screenMargin
+                } else {
+                    frame.origin.x += frame.width + screenMargin
+                }
+                panel.animator().setFrame(frame, display: true)
+            }
         }, completionHandler: { [weak self] in
             self?.panel?.orderOut(nil)
         })
@@ -135,6 +159,7 @@ final class OverlayManager {
         }
 
         OverlayClipboard.copy(currentResponseText)
+        displayState?.showCopiedToast()
         return true
     }
 

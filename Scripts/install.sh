@@ -3,8 +3,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+source "$SCRIPT_DIR/lib.sh"
+
 GLOBAL_INSTALL_DIR="/usr/local/bin"
 USER_INSTALL_DIR="${HOME}/.local/bin"
+INSTALLED_PATH=""
 
 echo "Building ClipAI (release)..."
 cd "$PROJECT_DIR"
@@ -19,6 +22,7 @@ install_to() {
 
     mkdir -p "$target_dir"
     install -m 755 "$BIN_PATH" "$target_dir/clip"
+    INSTALLED_PATH="$target_dir/clip"
 
     echo ""
     echo "✓ ClipAI installed to $target_dir/clip ($label)"
@@ -35,6 +39,7 @@ elif can_use_sudo; then
     echo "Installing to $GLOBAL_INSTALL_DIR/clip (requires sudo)..."
     sudo mkdir -p "$GLOBAL_INSTALL_DIR"
     sudo install -m 755 "$BIN_PATH" "$GLOBAL_INSTALL_DIR/clip"
+    INSTALLED_PATH="$GLOBAL_INSTALL_DIR/clip"
     echo ""
     echo "✓ ClipAI installed to $GLOBAL_INSTALL_DIR/clip (global)"
 else
@@ -44,6 +49,10 @@ else
     echo ""
     echo "Ensure this directory is on your PATH:"
     echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+fi
+
+if [ -n "$INSTALLED_PATH" ]; then
+    clipai_record_install_metadata "$INSTALLED_PATH"
 fi
 
 echo ""

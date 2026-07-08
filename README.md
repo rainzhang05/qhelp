@@ -9,11 +9,20 @@ Requires macOS 13 or newer and Swift 5.9 or newer.
 ```bash
 git clone https://github.com/rainzhang05/ClipAI
 cd ClipAI
-chmod +x Scripts/*.sh
-./Scripts/install.sh
+./setup
 ```
 
-The install script builds a release binary and installs `clip` to `/usr/local/bin` when possible, otherwise to `~/.local/bin`.
+Setup builds a release binary, installs `clip` to `/usr/local/bin` when possible, otherwise to `~/.local/bin`, and can save a provider API key in the macOS Keychain.
+
+## Update
+
+From the project folder:
+
+```bash
+./update
+```
+
+The update command pulls the latest changes and reinstalls ClipAI when needed.
 
 ## Use
 

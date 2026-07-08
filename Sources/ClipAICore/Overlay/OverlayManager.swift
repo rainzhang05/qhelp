@@ -1,48 +1,14 @@
 import AppKit
 import SwiftUI
 
-/// Non-activating panel with focused-keyboard fallback controls.
-final class OverlayPanel: NSPanel {
-    var onSpacePressed: (() -> Bool)?
-    var onCPressed: (() -> Bool)?
-
-    override var canBecomeKey: Bool {
-        return true
-    }
-
-    override func sendEvent(_ event: NSEvent) {
-        if event.type == .keyDown,
-           let action = OverlayKeyboardShortcut.action(
-               forKeyCode: Int64(event.keyCode),
-               flags: CGEventFlags(rawValue: UInt64(event.modifierFlags.rawValue)),
-               isRepeat: event.isARepeat
-           ),
-           handle(action) {
-            return
-        }
-        super.sendEvent(event)
-    }
-
-    private func handle(_ action: OverlayKeyboardAction) -> Bool {
-        switch action {
-        case .copy:
-            return onCPressed?() == true
-        case .dismiss:
-            return onSpacePressed?() == true
-        }
-    }
-}
-
 /// Manages the floating overlay panel that displays AI responses.
 ///
 /// The overlay appears in the bottom-right corner, fades in, and stays visible
-/// until the user clicks the header to dismiss. Text can be scrolled and copied.
+/// until the user clicks the close button to dismiss. Text can be scrolled and copied.
 /// The panel never activates the application or steals keyboard focus.
 final class OverlayManager {
 
-    private var panel: OverlayPanel?
-    private let keyboardMonitor = OverlayKeyboardMonitor()
-    private let keyboardState = OverlayEntryKeyboardState()
+    private var panel: NSPanel?
     private var currentResponseText = ""
     private var displayState: OverlayDisplayState?
 
@@ -56,7 +22,6 @@ final class OverlayManager {
         guard let panel = panel else { return }
 
         currentResponseText = text
-        keyboardState.beginEntry()
 
         let displayText = text.isEmpty ? "(empty response)" : text
         let state: OverlayDisplayState
@@ -69,20 +34,18 @@ final class OverlayManager {
             displayState = state
         }
 
-        panel.onSpacePressed = { [weak self] in
-            self?.dismiss(slideOut: true)
-            return true
-        }
-        panel.onCPressed = { [weak self] in
-            self?.copyCurrentEntryIfNeeded() ?? false
-        }
-
         let wasVisible = panel.isVisible
 
         if needsHostingView {
-            let overlayView = OverlayView(displayState: state) { [weak self] in
-                self?.dismiss()
-            }
+            let overlayView = OverlayView(
+                displayState: state,
+                onDismiss: { [weak self] in
+                    self?.dismiss()
+                },
+                onCopy: { [weak self] in
+                    self?.copyCurrentEntryIfNeeded()
+                }
+            )
             let hostingView = configureHostingView(rootView: overlayView)
             panel.contentView = hostingView
         }
@@ -95,10 +58,7 @@ final class OverlayManager {
 
         if !wasVisible {
             panel.alphaValue = 0
-            panel.makeKeyAndOrderFront(nil)
-            keyboardMonitor.start { [weak self] action in
-                self?.handleKeyboardAction(action) ?? false
-            }
+            panel.orderFront(nil)
 
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = OverlayMetrics.animationDuration
@@ -107,7 +67,6 @@ final class OverlayManager {
             }
         } else {
             panel.alphaValue = 0.85
-            panel.makeKey()
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = OverlayMetrics.contentReplaceDuration
                 context.timingFunction = CAMediaTimingFunction(name: .easeOut)
@@ -118,47 +77,23 @@ final class OverlayManager {
 
     // MARK: - Private
 
-    private func dismiss(slideOut: Bool = false) {
+    private func dismiss() {
         guard let panel = panel, panel.isVisible else { return }
-
-        keyboardMonitor.stop()
 
         NSAnimationContext.runAnimationGroup({ context in
             context.duration = OverlayMetrics.animationDuration
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             panel.animator().alphaValue = 0
-            if slideOut {
-                var frame = panel.frame
-                if let screen = panel.screen ?? NSScreen.main {
-                    frame.origin.x = screen.visibleFrame.maxX + OverlayMetrics.screenMargin
-                } else {
-                    frame.origin.x += frame.width + OverlayMetrics.screenMargin
-                }
-                panel.animator().setFrame(frame, display: true)
-            }
         }, completionHandler: { [weak self] in
             self?.panel?.orderOut(nil)
         })
     }
 
-    private func handleKeyboardAction(_ action: OverlayKeyboardAction) -> Bool {
-        switch action {
-        case .copy:
-            return copyCurrentEntryIfNeeded()
-        case .dismiss:
-            dismiss()
-            return true
-        }
-    }
-
-    private func copyCurrentEntryIfNeeded() -> Bool {
-        guard keyboardState.consumeCopyIfNeeded() else {
-            return false
-        }
+    private func copyCurrentEntryIfNeeded() {
+        guard displayState?.consumeCopyIfNeeded() == true else { return }
 
         OverlayClipboard.copy(currentResponseText)
-        displayState?.showCopiedToast()
-        return true
+        displayState?.markCopied()
     }
 
     private func configureHostingView<Content: View>(rootView: Content) -> NSHostingView<Content> {
@@ -170,7 +105,7 @@ final class OverlayManager {
     }
 
     private func createPanel() {
-        let panel = OverlayPanel(
+        let panel = NSPanel(
             contentRect: NSRect(origin: .zero, size: OverlayMetrics.initialPanelSize),
             styleMask: OverlayInteractionPolicy.panelStyleMask,
             backing: .buffered,
@@ -192,7 +127,7 @@ final class OverlayManager {
         self.panel = panel
     }
 
-    private func positionPanel(_ panel: OverlayPanel, size: CGSize) {
+    private func positionPanel(_ panel: NSPanel, size: CGSize) {
         guard let screen = NSScreen.main else { return }
 
         let visibleFrame = screen.visibleFrame

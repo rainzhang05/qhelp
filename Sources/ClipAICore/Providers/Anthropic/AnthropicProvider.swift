@@ -16,7 +16,6 @@ public final class AnthropicProvider: AIProvider {
     private let requestOptions: ModelRequestOptions
     private let apiURL = URL(string: "https://api.anthropic.com/v1/messages")!
     private let session: URLSession
-    private let timeoutInterval: TimeInterval = 120
     private var history: [[String: Any]] = []
 
     // MARK: - Initialization
@@ -36,10 +35,7 @@ public final class AnthropicProvider: AIProvider {
         if let session {
             self.session = session
         } else {
-            let configuration = URLSessionConfiguration.default
-            configuration.timeoutIntervalForRequest = 120
-            configuration.timeoutIntervalForResource = 120
-            self.session = URLSession(configuration: configuration)
+            self.session = ProviderHTTP.makeSession()
         }
     }
 
@@ -51,7 +47,7 @@ public final class AnthropicProvider: AIProvider {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.setValue(AnthropicAPI.apiVersion, forHTTPHeaderField: "anthropic-version")
-        request.timeoutInterval = timeoutInterval
+        request.timeoutInterval = ProviderHTTP.timeoutInterval
 
         let userMessage = AnthropicAPI.buildUserMessage(content: content)
         let currentMessages = history + [userMessage]
@@ -63,55 +59,17 @@ public final class AnthropicProvider: AIProvider {
         )
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        let responseText = try await performRequest(request)
+        let responseText = try await ProviderHTTP.performRequest(
+            request,
+            session: session,
+            parseResponse: AnthropicAPI.parseResponse,
+            parseError: AnthropicAPI.parseError
+        )
         history = currentMessages + [["role": "assistant", "content": responseText]]
         return responseText
     }
 
     public func cancelInFlightRequest() {
         session.invalidateAndCancel()
-    }
-
-    // MARK: - Networking
-
-    private func performRequest(_ request: URLRequest) async throws -> String {
-        var attempt = 0
-
-        while true {
-            try Task.checkCancellation()
-
-            let data: Data
-            let response: URLResponse
-
-            do {
-                (data, response) = try await session.data(for: request)
-            } catch {
-                throw AnthropicAPI.mapNetworkError(error)
-            }
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw ProviderError.invalidResponse
-            }
-
-            if httpResponse.statusCode == 200 {
-                return try AnthropicAPI.parseResponse(data: data)
-            }
-
-            if httpResponse.statusCode == 429, attempt < AnthropicAPI.maxRateLimitRetries {
-                let retryAfter = AnthropicAPI.parseRetryAfter(
-                    httpResponse.value(forHTTPHeaderField: "Retry-After")
-                )
-                let delay = AnthropicAPI.backoffDelay(for: attempt, retryAfter: retryAfter)
-                attempt += 1
-                try await Task.sleep(nanoseconds: delay)
-                continue
-            }
-
-            throw AnthropicAPI.parseError(
-                statusCode: httpResponse.statusCode,
-                data: data,
-                retryAfterHeader: httpResponse.value(forHTTPHeaderField: "Retry-After")
-            )
-        }
     }
 }

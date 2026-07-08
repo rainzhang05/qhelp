@@ -86,6 +86,7 @@ enum TestSuites {
         CLIParserTests.self,
         ProviderCatalogTests.self,
         ProviderRegistryTests.self,
+        ProviderHTTPTests.self,
         AnthropicAPITests.self,
         OpenAICompatibleAPITests.self,
         GeminiAPITests.self,

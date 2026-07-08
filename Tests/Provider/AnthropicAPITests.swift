@@ -1,5 +1,5 @@
 import Foundation
-import ClipAICore
+@testable import ClipAICore
 
 enum AnthropicAPITests: TestCase {
     static let name = "AnthropicAPITests"
@@ -53,7 +53,7 @@ enum AnthropicAPITests: TestCase {
         try assertEqual(statusCode, 401)
         try assertEqual(message, "invalid x-api-key")
 
-        let networkError = AnthropicAPI.mapNetworkError(URLError(.notConnectedToInternet))
+        let networkError = ProviderHTTP.mapNetworkError(URLError(.notConnectedToInternet))
         guard case .networkUnavailable = networkError as? ProviderError else {
             throw TestFailure.message("Expected networkUnavailable")
         }

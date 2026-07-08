@@ -30,7 +30,7 @@ enum ProviderHTTP {
             do {
                 (data, response) = try await session.data(for: request)
             } catch {
-                throw AnthropicAPI.mapNetworkError(error)
+                throw mapNetworkError(error)
             }
 
             guard let httpResponse = response as? HTTPURLResponse else {
@@ -42,10 +42,10 @@ enum ProviderHTTP {
             }
 
             if httpResponse.statusCode == 429, attempt < maxRateLimitRetries {
-                let retryAfter = AnthropicAPI.parseRetryAfter(
+                let retryAfter = parseRetryAfter(
                     httpResponse.value(forHTTPHeaderField: "Retry-After")
                 )
-                let delay = AnthropicAPI.backoffDelay(for: attempt, retryAfter: retryAfter)
+                let delay = backoffDelay(for: attempt, retryAfter: retryAfter)
                 attempt += 1
                 try await Task.sleep(nanoseconds: delay)
                 continue
@@ -61,7 +61,7 @@ enum ProviderHTTP {
 
     static func parseOpenAIError(statusCode: Int, data: Data, retryAfterHeader: String?) -> ProviderError {
         if statusCode == 429 {
-            return .rateLimited(retryAfter: AnthropicAPI.parseRetryAfter(retryAfterHeader))
+            return .rateLimited(retryAfter: parseRetryAfter(retryAfterHeader))
         }
 
         if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -97,5 +97,47 @@ enum ProviderHTTP {
         }
 
         return (data, httpResponse)
+    }
+
+    static func parseRetryAfter(_ header: String?) -> Int? {
+        guard let header, let seconds = Int(header), seconds > 0 else {
+            return nil
+        }
+        return seconds
+    }
+
+    static func backoffDelay(for attempt: Int, retryAfter: Int?) -> UInt64 {
+        if let retryAfter {
+            return UInt64(retryAfter) * 1_000_000_000
+        }
+        return UInt64(pow(2.0, Double(attempt + 1))) * 1_000_000_000
+    }
+
+    static func mapNetworkError(_ error: Error) -> Error {
+        if error is ProviderError || error is CancellationError {
+            return error
+        }
+
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut:
+                return ProviderError.timeout
+            case .notConnectedToInternet, .networkConnectionLost:
+                return ProviderError.networkUnavailable
+            case .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
+                return ProviderError.serverUnreachable
+            default:
+                return ProviderError.networkError(urlError.localizedDescription)
+            }
+        }
+
+        return error
+    }
+
+    static func userFacingMessage(for error: Error) -> String {
+        if let localized = error as? LocalizedError, let description = localized.errorDescription {
+            return description
+        }
+        return error.localizedDescription
     }
 }

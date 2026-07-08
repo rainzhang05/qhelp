@@ -75,7 +75,7 @@ public actor RequestQueue {
             } catch {
                 guard !Task.isCancelled, !isShuttingDown else { break }
 
-                let errorMessage = AnthropicAPI.userFacingMessage(for: error)
+                let errorMessage = ProviderHTTP.userFacingMessage(for: error)
                 print("Error: \(errorMessage)")
 
                 await MainActor.run {

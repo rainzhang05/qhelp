@@ -87,7 +87,7 @@ public enum GeminiAPI {
 
     public static func parseError(statusCode: Int, data: Data, retryAfterHeader: String?) -> ProviderError {
         if statusCode == 429 {
-            return .rateLimited(retryAfter: AnthropicAPI.parseRetryAfter(retryAfterHeader))
+            return .rateLimited(retryAfter: ProviderHTTP.parseRetryAfter(retryAfterHeader))
         }
 
         if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],

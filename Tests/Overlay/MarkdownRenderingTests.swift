@@ -19,6 +19,13 @@ enum MarkdownRenderingTests: TestCase {
     """
 
     static func run() throws {
+        try testBasicMarkdownBlocks()
+        try testAdditionalBlockTypes()
+        try testMalformedMarkdownFallbacks()
+        try testOverlayClipboardAndPlainTextMode()
+    }
+
+    private static func testBasicMarkdownBlocks() throws {
         let blocks = MarkdownDocumentParser.parse(sampleMarkdown)
         try assertTrue(blocks.count >= 4)
 
@@ -43,7 +50,52 @@ enum MarkdownRenderingTests: TestCase {
         } else {
             throw TestFailure.message("Expected code block")
         }
+    }
 
+    private static func testAdditionalBlockTypes() throws {
+        let markdown = """
+        1. First
+        2. Second
+
+        > quoted
+        > text
+
+        ---
+        """
+
+        let blocks = MarkdownDocumentParser.parse(markdown)
+        try assertEqual(blocks.count, 3)
+
+        if case .numberedList(let items) = blocks[0] {
+            try assertEqual(items, ["First", "Second"])
+        } else {
+            throw TestFailure.message("Expected numbered list block")
+        }
+
+        if case .blockquote(let lines) = blocks[1] {
+            try assertEqual(lines, ["quoted", "text"])
+        } else {
+            throw TestFailure.message("Expected blockquote block")
+        }
+
+        try assertEqual(blocks[2], .thematicBreak)
+    }
+
+    private static func testMalformedMarkdownFallbacks() throws {
+        let headingWithoutSpace = MarkdownDocumentParser.parse("#Not a heading")
+        try assertEqual(headingWithoutSpace, [.paragraph(text: "#Not a heading")])
+
+        let unclosedFence = MarkdownDocumentParser.parse("""
+        ```swift
+        let value = 1
+        """)
+        try assertEqual(unclosedFence, [.codeBlock(language: "swift", code: "let value = 1")])
+
+        let malformedNumber = MarkdownDocumentParser.parse("1.Not a list")
+        try assertEqual(malformedNumber, [.paragraph(text: "1.Not a list")])
+    }
+
+    private static func testOverlayClipboardAndPlainTextMode() throws {
         try assertTrue(OverlayClipboard.copy("test copy"))
         let readBack = NSPasteboard.general.string(forType: .string)
         try assertEqual(readBack, "test copy")

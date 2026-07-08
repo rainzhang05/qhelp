@@ -15,6 +15,12 @@ enum ProviderCatalogTests: TestCase {
         try assertEqual(ProviderCatalog.kind(for: "qwen-plus"), .qwen)
         try assertEqual(ProviderCatalog.kind(for: "glm-4-flash"), .glm)
         try assertEqual(ProviderCatalog.kind(for: "unknown-model"), nil)
+        try assertEqual(ProviderCatalog.kind(for: "claude"), nil)
+        try assertEqual(ProviderCatalog.kind(for: "claudette-1"), nil)
+        try assertEqual(ProviderCatalog.kind(for: "gptish"), nil)
+        try assertEqual(ProviderCatalog.kind(for: "gemini"), nil)
+        try assertEqual(ProviderCatalog.kind(for: "moonshot-v1"), .kimi)
+        try assertEqual(ProviderCatalog.kind(for: "GPT-4O"), .openai)
 
         try assertEqual(
             ProviderCatalog.modelIdentifier(for: "gpt-4o"),
@@ -27,5 +33,9 @@ enum ProviderCatalogTests: TestCase {
 
         try assertTrue(ProviderCatalog.supportsImages(modelIdentifier: "gpt-4o", kind: .openai))
         try assertFalse(ProviderCatalog.supportsImages(modelIdentifier: "deepseek-chat", kind: .deepseek))
+        try assertTrue(ProviderCatalog.supportsImages(modelIdentifier: "QWEN-VL-MAX", kind: .qwen))
+        try assertFalse(ProviderCatalog.supportsImages(modelIdentifier: "qwen-plus", kind: .qwen))
+        try assertTrue(ProviderCatalog.supportsImages(modelIdentifier: "GLM-4V", kind: .glm))
+        try assertTrue(ProviderCatalog.supportsImages(modelIdentifier: "KIMI-K2", kind: .kimi))
     }
 }

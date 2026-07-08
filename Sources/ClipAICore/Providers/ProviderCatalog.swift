@@ -2,6 +2,25 @@ import Foundation
 
 /// Provider metadata: routing rules and API endpoints.
 public enum ProviderCatalog {
+    private struct ProviderRoute {
+        let kind: ProviderKind
+        let prefixes: [String]
+
+        func matches(_ modelName: String) -> Bool {
+            prefixes.contains { modelName.hasPrefix($0) }
+        }
+    }
+
+    private static let routes: [ProviderRoute] = [
+        ProviderRoute(kind: .anthropic, prefixes: ["claude-"]),
+        ProviderRoute(kind: .openai, prefixes: ["gpt-", "o1", "o3", "o4"]),
+        ProviderRoute(kind: .gemini, prefixes: ["gemini-"]),
+        ProviderRoute(kind: .grok, prefixes: ["grok-"]),
+        ProviderRoute(kind: .kimi, prefixes: ["kimi-", "moonshot-"]),
+        ProviderRoute(kind: .deepseek, prefixes: ["deepseek-"]),
+        ProviderRoute(kind: .qwen, prefixes: ["qwen-"]),
+        ProviderRoute(kind: .glm, prefixes: ["glm-"])
+    ]
 
     // MARK: - Public
 
@@ -18,18 +37,8 @@ public enum ProviderCatalog {
     """
 
     public static func kind(for modelName: String) -> ProviderKind? {
-        if modelName.hasPrefix("claude") { return .anthropic }
-        if modelName.hasPrefix("gpt")
-            || modelName.hasPrefix("o1")
-            || modelName.hasPrefix("o3")
-            || modelName.hasPrefix("o4") { return .openai }
-        if modelName.hasPrefix("gemini") { return .gemini }
-        if modelName.hasPrefix("grok") { return .grok }
-        if modelName.hasPrefix("kimi") || modelName.hasPrefix("moonshot") { return .kimi }
-        if modelName.hasPrefix("deepseek") { return .deepseek }
-        if modelName.hasPrefix("qwen") { return .qwen }
-        if modelName.hasPrefix("glm") { return .glm }
-        return nil
+        let normalized = modelName.lowercased()
+        return routes.first { $0.matches(normalized) }?.kind
     }
 
     /// Returns the model name unchanged — sent verbatim to the provider API.
@@ -39,16 +48,17 @@ public enum ProviderCatalog {
 
     public static func supportsImages(modelIdentifier: String, kind: ProviderKind) -> Bool {
         if !kind.defaultSupportsImages { return false }
+        let normalized = modelIdentifier.lowercased()
 
         switch kind {
         case .deepseek:
             return false
         case .qwen:
-            return modelIdentifier.contains("vl") || modelIdentifier.contains("vision")
+            return normalized.contains("vl") || normalized.contains("vision")
         case .glm:
-            return modelIdentifier.contains("v") || modelIdentifier.contains("vision")
+            return normalized.contains("v") || normalized.contains("vision")
         case .kimi:
-            return modelIdentifier.contains("vision") || modelIdentifier.contains("k2")
+            return normalized.contains("vision") || normalized.contains("k2")
         default:
             return true
         }

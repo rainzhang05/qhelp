@@ -12,6 +12,7 @@ enum ModelOptionsPromptTests: TestCase {
         ModelOptionsPrompt.setOutputWriter { _ in }
 
         try testEmptyProfileReturnsNone()
+        try testAutoDefaultsOnlyProfileDoesNotPrompt()
         try testThinkingOffStillPromptsEffort()
         try testThinkingOnWithEffortAndAutoDefaults()
         try testEffortOnlyProfile()
@@ -20,6 +21,28 @@ enum ModelOptionsPromptTests: TestCase {
     private static func testEmptyProfileReturnsNone() throws {
         let options = ModelOptionsPrompt.prompt(for: .empty)
         try assertEqual(options, .none)
+    }
+
+    private static func testAutoDefaultsOnlyProfileDoesNotPrompt() throws {
+        var didReadLine = false
+        ModelOptionsPrompt.setLineReader {
+            didReadLine = true
+            return nil
+        }
+
+        let profile = ModelParameterProfile(
+            supportsTemperature: true,
+            supportsTopP: true,
+            supportsVerbosity: true
+        )
+
+        let options = ModelOptionsPrompt.prompt(for: profile)
+        try assertFalse(didReadLine)
+        try assertEqual(options.temperature, ModelRequestOptions.defaultTemperature)
+        try assertEqual(options.topP, ModelRequestOptions.defaultTopP)
+        try assertEqual(options.verbosity, ModelRequestOptions.defaultVerbosity)
+        try assertEqual(options.reasoningEffort, nil)
+        try assertEqual(options.thinkingEnabled, nil)
     }
 
     private static func testThinkingOffStillPromptsEffort() throws {
@@ -61,6 +84,9 @@ enum ModelOptionsPromptTests: TestCase {
         try assertEqual(options.thinkingEnabled, true)
         try assertEqual(options.thinkingType, "adaptive")
         try assertEqual(options.reasoningEffort, "low")
+        try assertEqual(options.temperature, ModelRequestOptions.defaultTemperature)
+        try assertEqual(options.topP, ModelRequestOptions.defaultTopP)
+        try assertEqual(options.verbosity, ModelRequestOptions.defaultVerbosity)
     }
 
     private static func testEffortOnlyProfile() throws {

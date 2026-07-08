@@ -2,6 +2,10 @@ import Foundation
 
 /// User-selected and auto-applied model parameters for API requests.
 public struct ModelRequestOptions: Equatable, Sendable {
+    public static let defaultTemperature = 0.0
+    public static let defaultTopP = 1.0
+    public static let defaultVerbosity = "medium"
+
     public var reasoningEffort: String?
     public var thinkingEnabled: Bool?
     public var thinkingType: String?
@@ -26,4 +30,24 @@ public struct ModelRequestOptions: Equatable, Sendable {
     }
 
     public static let none = ModelRequestOptions()
+
+    public static func defaults(for profile: ModelParameterProfile) -> ModelRequestOptions {
+        var options = ModelRequestOptions()
+        options.applyAutoDefaults(for: profile)
+        return options
+    }
+
+    public mutating func applyAutoDefaults(for profile: ModelParameterProfile) {
+        if profile.supportsTemperature {
+            temperature = Self.defaultTemperature
+        }
+
+        if profile.supportsTopP {
+            topP = Self.defaultTopP
+        }
+
+        if profile.supportsVerbosity {
+            verbosity = Self.defaultVerbosity
+        }
+    }
 }

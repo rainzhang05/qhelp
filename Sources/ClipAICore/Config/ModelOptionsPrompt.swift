@@ -24,7 +24,7 @@ public enum ModelOptionsPrompt {
             return .none
         }
 
-        var options = ModelRequestOptions()
+        var options = ModelRequestOptions.defaults(for: profile)
 
         if profile.supportsThinkingToggle {
             let thinkingEnabled = promptThinkingToggle(thinkingTypes: profile.thinkingTypes)

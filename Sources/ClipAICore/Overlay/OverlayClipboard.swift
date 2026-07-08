@@ -8,8 +8,7 @@ enum OverlayClipboard {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
 
-        let markerType = NSPasteboard.PasteboardType("com.clipai.ignore")
-        pasteboard.setString("true", forType: markerType)
+        pasteboard.setString("true", forType: ClipboardPasteboardTypes.clipAIIgnore)
         return pasteboard.setString(string, forType: .string)
     }
 }

@@ -21,12 +21,6 @@ final class ClipboardMonitor {
     /// 0.5s provides near-instant detection with negligible CPU cost.
     private let pollInterval: TimeInterval = 0.5
 
-    // MARK: - Pasteboard Type Constants
-
-    private static let heicType = NSPasteboard.PasteboardType("public.heic")
-    private static let heifType = NSPasteboard.PasteboardType("public.heif")
-    private static let jpegType = NSPasteboard.PasteboardType("public.jpeg")
-
     // MARK: - Initialization
 
     init(queue: RequestQueue) {
@@ -63,8 +57,7 @@ final class ClipboardMonitor {
         lastChangeCount = currentChangeCount
 
         // Ignore copies triggered by ClipAI itself
-        let ignoreType = NSPasteboard.PasteboardType("com.clipai.ignore")
-        if pasteboard.types?.contains(ignoreType) == true {
+        if pasteboard.types?.contains(ClipboardPasteboardTypes.clipAIIgnore) == true {
             return
         }
 
@@ -105,8 +98,9 @@ final class ClipboardMonitor {
         let types = pasteboard.types ?? []
 
         let hasPNG    = types.contains(.png)
-        let hasHEIC   = types.contains(Self.heicType) || types.contains(Self.heifType)
-        let hasJPEG   = types.contains(Self.jpegType)
+        let hasHEIC   = types.contains(ClipboardPasteboardTypes.heic)
+            || types.contains(ClipboardPasteboardTypes.heif)
+        let hasJPEG   = types.contains(ClipboardPasteboardTypes.jpeg)
         let hasTIFF   = types.contains(.tiff)
         let hasString = types.contains(.string)
 
@@ -119,15 +113,17 @@ final class ClipboardMonitor {
 
         // HEIC/HEIF: common on modern Macs — convert to PNG for API
         if hasHEIC {
-            let heifData = pasteboard.data(forType: Self.heicType)
-                        ?? pasteboard.data(forType: Self.heifType)
+            let heifData = pasteboard.data(forType: ClipboardPasteboardTypes.heic)
+                        ?? pasteboard.data(forType: ClipboardPasteboardTypes.heif)
             if let data = heifData, let pngData = convertToPNG(data) {
                 return .image(pngData, mediaType: "image/png")
             }
         }
 
         // JPEG: Anthropic supports natively
-        if hasJPEG, let data = pasteboard.data(forType: Self.jpegType), !data.isEmpty {
+        if hasJPEG,
+           let data = pasteboard.data(forType: ClipboardPasteboardTypes.jpeg),
+           !data.isEmpty {
             return .image(data, mediaType: "image/jpeg")
         }
 

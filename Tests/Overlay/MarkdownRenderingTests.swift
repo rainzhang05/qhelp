@@ -99,6 +99,9 @@ enum MarkdownRenderingTests: TestCase {
         try assertTrue(OverlayClipboard.copy("test copy"))
         let readBack = NSPasteboard.general.string(forType: .string)
         try assertEqual(readBack, "test copy")
+        try assertTrue(
+            NSPasteboard.general.types?.contains(ClipboardPasteboardTypes.clipAIIgnore) == true
+        )
 
         let errorView = OverlayView(text: "Error message", isError: true, onDismiss: {})
         try assertTrue(errorView.usesPlainTextContent)

@@ -103,10 +103,10 @@ enum MarkdownRenderingTests: TestCase {
             NSPasteboard.general.types?.contains(ClipboardPasteboardTypes.clipAIIgnore) == true
         )
 
-        let errorView = OverlayView(text: "Error message", isError: true, onDismiss: {})
+        let errorView = OverlayView(text: "Error message", isError: true)
         try assertTrue(errorView.usesPlainTextContent)
 
-        let successView = OverlayView(text: "**Hello**", isError: false, onDismiss: {})
+        let successView = OverlayView(text: "**Hello**", isError: false)
         try assertFalse(successView.usesPlainTextContent)
     }
 }

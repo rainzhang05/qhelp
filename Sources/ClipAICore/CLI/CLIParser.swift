@@ -67,11 +67,8 @@ public enum CLIParser {
           Invalid or unavailable models return an API error from the provider.
 
         OVERLAY:
-          Stays visible until you click the header to dismiss.
-          Press c while the overlay is visible to copy the full response once.
-          Press Space while the overlay is visible to dismiss it.
-          If macOS has not granted keyboard monitoring permission, click the
-          overlay before pressing c or Space.
+          Stays visible until you click the red close button to dismiss.
+          Click Copy in the upper-right corner to copy the full response once.
 
         PROVIDER ROUTING (model name prefix):
         \(ProviderCatalog.routingHelp)

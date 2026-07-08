@@ -1,4 +1,3 @@
-import AppKit
 import Foundation
 @testable import ClipAICore
 
@@ -12,158 +11,29 @@ enum OverlayInteractionTests: TestCase {
         try assertTrue(OverlayInteractionPolicy.panelStyleMask.contains(.nonactivatingPanel))
 
         var dismissed = false
-        let view = OverlayView(text: "hello", isError: false) {
+        let view = OverlayView(text: "hello", isError: false, onDismiss: {
             dismissed = true
-        }
+        })
         view.triggerDismiss()
         try assertTrue(dismissed)
 
-        // Test custom OverlayPanel key event handling
-        let panel = OverlayPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 460, height: 200),
-            styleMask: OverlayInteractionPolicy.panelStyleMask,
-            backing: .buffered,
-            defer: false
-        )
-
-        var spacePressed = false
-        var cPressed = false
-        panel.onSpacePressed = {
-            spacePressed = true
-            return true
-        }
-        panel.onCPressed = {
-            cPressed = true
-            return true
-        }
-
-        // Simulate Space press
-        if let spaceEvent = NSEvent.keyEvent(
-            with: .keyDown,
-            location: .zero,
-            modifierFlags: [],
-            timestamp: 0,
-            windowNumber: panel.windowNumber,
-            context: nil,
-            characters: " ",
-            charactersIgnoringModifiers: " ",
-            isARepeat: false,
-            keyCode: 49
-        ) {
-            panel.sendEvent(spaceEvent)
-        }
-
-        // Simulate 'c' press
-        if let cEvent = NSEvent.keyEvent(
-            with: .keyDown,
-            location: .zero,
-            modifierFlags: [],
-            timestamp: 0,
-            windowNumber: panel.windowNumber,
-            context: nil,
-            characters: "c",
-            charactersIgnoringModifiers: "c",
-            isARepeat: false,
-            keyCode: 8
-        ) {
-            panel.sendEvent(cEvent)
-        }
-
-        try assertTrue(spacePressed)
-        try assertTrue(cPressed)
-
-        // Simulate 'x' press (other key, should not trigger callbacks)
-        var spacePressed2 = false
-        var cPressed2 = false
-        panel.onSpacePressed = {
-            spacePressed2 = true
-            return true
-        }
-        panel.onCPressed = {
-            cPressed2 = true
-            return true
-        }
-
-        if let xEvent = NSEvent.keyEvent(
-            with: .keyDown,
-            location: .zero,
-            modifierFlags: [],
-            timestamp: 0,
-            windowNumber: panel.windowNumber,
-            context: nil,
-            characters: "x",
-            charactersIgnoringModifiers: "x",
-            isARepeat: false,
-            keyCode: 7
-        ) {
-            panel.sendEvent(xEvent)
-        }
-
-        try assertFalse(spacePressed2)
-        try assertFalse(cPressed2)
-
-        var shiftedCPressed = false
-        panel.onCPressed = {
-            shiftedCPressed = true
-            return true
-        }
-
-        if let shiftedCEvent = NSEvent.keyEvent(
-            with: .keyDown,
-            location: .zero,
-            modifierFlags: [.shift],
-            timestamp: 0,
-            windowNumber: panel.windowNumber,
-            context: nil,
-            characters: "C",
-            charactersIgnoringModifiers: "c",
-            isARepeat: false,
-            keyCode: 8
-        ) {
-            panel.sendEvent(shiftedCEvent)
-        }
-
-        try assertFalse(shiftedCPressed)
-
-        try assertEqual(
-            OverlayKeyboardShortcut.action(forKeyCode: 8, flags: [], isRepeat: false),
-            .copy
-        )
-        try assertEqual(
-            OverlayKeyboardShortcut.action(forKeyCode: 49, flags: [], isRepeat: false),
-            .dismiss
-        )
-        try assertEqual(
-            OverlayKeyboardShortcut.action(forKeyCode: 8, flags: [.maskCommand], isRepeat: false),
-            nil
-        )
-        try assertEqual(
-            OverlayKeyboardShortcut.action(forKeyCode: 49, flags: [.maskShift], isRepeat: false),
-            nil
-        )
-        try assertEqual(
-            OverlayKeyboardShortcut.action(forKeyCode: 8, flags: [], isRepeat: true),
-            nil
-        )
-        try assertEqual(
-            OverlayKeyboardShortcut.action(forKeyCode: 7, flags: [], isRepeat: false),
-            nil
-        )
-
-        let entryKeyboardState = OverlayEntryKeyboardState()
-        try assertTrue(entryKeyboardState.consumeCopyIfNeeded())
-        try assertFalse(entryKeyboardState.consumeCopyIfNeeded())
-
-        entryKeyboardState.beginEntry()
-        try assertTrue(entryKeyboardState.consumeCopyIfNeeded())
+        var copied = false
+        let copyView = OverlayView(text: "hello", isError: false, onCopy: {
+            copied = true
+        })
+        copyView.triggerCopy()
+        try assertTrue(copied)
 
         let displayState = OverlayDisplayState(text: "first", isError: false)
-        try assertFalse(displayState.showsCopiedToast)
-        displayState.showCopiedToast()
-        try assertTrue(displayState.showsCopiedToast)
+        try assertFalse(displayState.hasCopied)
+        try assertTrue(displayState.consumeCopyIfNeeded())
+        try assertFalse(displayState.consumeCopyIfNeeded())
+        displayState.markCopied()
+        try assertTrue(displayState.hasCopied)
         displayState.update(text: "second", isError: true)
         try assertEqual(displayState.text, "second")
         try assertTrue(displayState.isError)
-        try assertFalse(displayState.showsCopiedToast)
+        try assertFalse(displayState.hasCopied)
+        try assertTrue(displayState.consumeCopyIfNeeded())
     }
 }

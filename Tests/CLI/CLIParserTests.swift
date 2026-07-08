@@ -20,6 +20,6 @@ enum CLIParserTests: TestCase {
         let usage = CLIParser.usageText()
         try assertTrue(usage.contains("exact model name"))
         try assertTrue(usage.contains("claude-*"))
-        try assertTrue(usage.contains("click the header"))
+        try assertTrue(usage.contains("close button"))
     }
 }

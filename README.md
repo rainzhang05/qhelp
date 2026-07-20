@@ -29,9 +29,8 @@ The update command pulls the latest changes and reinstalls ClipAI when needed.
 Start ClipAI with the exact API model name you want to use:
 
 ```bash
-clip claude-sonnet-4-6
-clip gpt-4o
-clip gemini-2.5-flash
+clip claude-fable-5
+clip gpt-5.6-sol
 ```
 
 Then copy text or an image from any app. ClipAI watches the system clipboard, processes new clipboard items one at a time, and shows the AI response in the bottom-right overlay.

@@ -52,7 +52,7 @@ On first use, ClipAI prompts for the provider API key and saves it in the macOS 
 | Provider | Model prefix | Environment variable |
 | --- | --- | --- |
 | Anthropic | `claude-*` | `ANTHROPIC_API_KEY` |
-| OpenAI | `gpt-*`, `o1*`, `o3*`, `o4*` | `OPENAI_API_KEY` |
+| OpenAI | `gpt-*` | `OPENAI_API_KEY` |
 | Google Gemini | `gemini-*` | `GEMINI_API_KEY` |
 | xAI Grok | `grok-*` | `XAI_API_KEY` |
 | Moonshot Kimi | `kimi-*`, `moonshot-*` | `MOONSHOT_API_KEY` |
